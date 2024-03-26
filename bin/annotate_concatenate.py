@@ -5,8 +5,7 @@ from argparse import ArgumentParser
 from collections import defaultdict
 from os import fspath, walk
 from pathlib import Path
-from typing import List, Dict, Sequence, Tuple, Optional
-from cross_dataset_common import get_tissue_type, get_gene_dicts
+from typing import Dict, Tuple
 
 import pandas as pd
 import scipy.sparse
@@ -24,20 +23,11 @@ GENE_MAPPING_DIRECTORIES = [
 
 annotation_fields = ['azimuth_label', 'azimuth_id', 'predicted_CLID', 'predicted_label', 'cl_match_type', 'prediction_score']
 
-
-
 def get_tissue_type(dataset: str) -> str:
     organ_dict = yaml.load(open('/opt/organ_types.yaml'), Loader=yaml.BaseLoader)
     organ_code = requests.get(f'https://entity.api.hubmapconsortium.org/dataset/{dataset}/organs/')
     organ_name = organ_dict[organ_code]
     return organ_name.replace(' (Left)', '').replace(' (Right)', '')
-
-def get_annotation_metadata(filtered_files:List[Path]):
-    for filtered_file in filtered_files:
-        adata = anndata.read(filtered_file)
-        if 'annotation_metadata' in adata.uns.keys() and adata.uns['annotation_metadata']['is_annotated']:
-            return {'annotation_metadata':adata.uns['annotation_metadata']}
-    return {'annotation_metadata':{'is_annotated':False}}
 
 def get_inverted_gene_dict():
     inverted_dict = defaultdict(list)
@@ -84,6 +74,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
 
+    unfiltered_adata.uns['annotation_metadata'] = filtered_adata.uns['annotation_metadata'] if \
+        'annotation_metadata' in filtered_adata.uns.keys() else {'is_annotated':False}
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
     unfiltered_copy.obs['dataset'] = data_set_dir
@@ -145,9 +137,10 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     directories = [data_directory / Path(uuid) for uuid in uuids]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
-    print("File pairs found")
     adatas = [annotate_file(file_pair[0],file_pair[1]) for file_pair in file_pairs]
+    annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     adata = anndata.concat(adatas)
+    adata.uns['annotation_metadata'] = annotation_metadata
     adata.write(raw_output_file_name)
 
     adata.var_names_make_unique()
