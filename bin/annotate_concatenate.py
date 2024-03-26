@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+
+import json
+from argparse import ArgumentParser
+from collections import defaultdict
+from os import fspath, walk
+from pathlib import Path
+from typing import List, Dict, Sequence, Tuple, Optional
+from cross_dataset_common import get_tissue_type, get_gene_dicts
+
+import pandas as pd
+import scipy.sparse
+import scanpy as sc
+import numpy as np
+import yaml
+import requests
+import anndata
+
+GENE_MAPPING_DIRECTORIES = [
+    Path(__file__).parent.parent / 'data',
+    Path('/opt/data'),
+]
+
+
+annotation_fields = ['azimuth_label', 'azimuth_id', 'predicted_CLID', 'predicted_label', 'cl_match_type', 'prediction_score']
+
+
+
+def get_tissue_type(dataset: str) -> str:
+    organ_dict = yaml.load(open('/opt/organ_types.yaml'), Loader=yaml.BaseLoader)
+    organ_code = requests.get(f'https://entity.api.hubmapconsortium.org/dataset/{dataset}/organs/')
+    organ_name = organ_dict[organ_code]
+    return organ_name.replace(' (Left)', '').replace(' (Right)', '')
+
+def get_annotation_metadata(filtered_files:List[Path]):
+    for filtered_file in filtered_files:
+        adata = anndata.read(filtered_file)
+        if 'annotation_metadata' in adata.uns.keys() and adata.uns['annotation_metadata']['is_annotated']:
+            return {'annotation_metadata':adata.uns['annotation_metadata']}
+    return {'annotation_metadata':{'is_annotated':False}}
+
+def get_inverted_gene_dict():
+    inverted_dict = defaultdict(list)
+    gene_mapping = read_gene_mapping()
+    for ensembl, hugo in gene_mapping.items():
+        inverted_dict[hugo].append(ensembl)
+    return inverted_dict
+
+def find_files(directory, patterns):
+    for dirpath_str, dirnames, filenames in walk(directory):
+        dirpath = Path(dirpath_str)
+        for filename in filenames:
+            filepath = dirpath / filename
+            for pattern in patterns:
+                if filepath.match(pattern):
+                    return filepath
+
+def find_file_pairs(directory):
+    filtered_patterns = ['cluster_marker_genes.h5ad', 'secondary_analysis.h5ad']
+    unfiltered_patterns = ['out.h5ad', 'expr.h5ad']
+    filtered_file = find_files(directory, filtered_patterns)
+    unfiltered_file = find_files(directory, unfiltered_patterns)
+    return filtered_file, unfiltered_file
+
+def get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, dataset_uuid):
+    annotation_dict = {annotation_field:np.nan for annotation_field in annotation_fields}
+    annotation_dict['dataset_leiden'] = np.nan
+    if barcode not in filtered_adata.obs.index:
+        return annotation_dict
+    else:
+        annotation_dict['dataset_leiden'] = f"{dataset_uuid}-{filtered_adata.obs.at[barcode, 'leiden']}"
+        for field in annotation_fields:
+            annotation_dict[field] = filtered_adata.obs.at[barcode, field]
+        return annotation_dict
+
+
+def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -> Tuple[anndata.AnnData, anndata.AnnData]:
+
+    # Get the directory
+    data_set_dir = fspath(unfiltered_file.parent.stem)
+    # And the tissue type
+    tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
+
+    filtered_adata = anndata.read_h5ad(filtered_file)
+    unfiltered_adata = anndata.read_h5ad(unfiltered_file)
+
+    unfiltered_copy = unfiltered_adata.copy()
+    unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
+    unfiltered_copy.obs['dataset'] = data_set_dir
+    unfiltered_copy.obs['organ'] = tissue_type
+    unfiltered_copy.obs['modality'] = 'rna'
+    unfiltered_copy.obs['dataset_leiden'] = pd.Series(index=unfiltered_copy.obs.index)
+
+    for field in annotation_fields:
+        unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index)
+
+    for barcode in unfiltered_copy.obs.index:
+        dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
+        for k in dataset_clusters_and_cell_types:
+            unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
+
+    cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
+    unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index)
+    unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
+
+    unfiltered_copy = map_gene_ids(unfiltered_copy)
+
+    return unfiltered_copy.copy()
+
+def read_gene_mapping() -> Dict[str, str]:
+    """
+    Try to find the Ensembl to HUGO symbol mapping, with paths suitable
+    for running this script inside and outside a Docker container.
+    :return:
+    """
+    for directory in GENE_MAPPING_DIRECTORIES:
+        mapping_file = directory / 'ensembl_to_symbol.json'
+        if mapping_file.is_file():
+            with open(mapping_file) as f:
+                return json.load(f)
+    message_pieces = ["Couldn't find Ensembl → HUGO mapping file. Tried:"]
+    message_pieces.extend(f'\t{path}' for path in GENE_MAPPING_DIRECTORIES)
+    raise ValueError('\n'.join(message_pieces))
+
+def map_gene_ids(adata):
+    obsm = adata.obsm
+    gene_mapping = read_gene_mapping()
+    keep_vars = [gene in gene_mapping for gene in adata.var.index]
+    adata = adata[:, keep_vars]
+    temp_df = pd.DataFrame(adata.X.todense(), index=adata.obs.index, columns=adata.var.index)
+    aggregated = temp_df.groupby(level=0, axis=1).sum()
+    adata = anndata.AnnData(aggregated, obs=adata.obs)
+    adata.var.index = [gene_mapping[var] for var in adata.var.index]
+    adata.obsm = obsm
+    # This introduces duplicate gene names, use Pandas for aggregation
+    # since anndata doesn't have that functionality
+    adata.X = scipy.sparse.csr_matrix(adata.X)
+    adata.var_names_make_unique()
+    return adata
+
+def main(data_directory:Path, uuids_file: Path, tissue:str=None):
+    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
+    processed_output_file_name = f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
+    uuids = pd.read_csv(uuids_file, sep='\t')["uuid"][1:]
+    directories = [data_directory / Path(uuid) for uuid in uuids]
+    # Load files
+    file_pairs = [find_file_pairs(directory) for directory in directories]
+    print("File pairs found")
+    adatas = [annotate_file(file_pair[0],file_pair[1]) for file_pair in file_pairs]
+    adata = anndata.concat(adatas)
+    adata.write(raw_output_file_name)
+
+    adata.var_names_make_unique()
+    adata.obs_names_make_unique()
+
+    sc.pp.filter_cells(adata, min_genes=200)
+    sc.pp.filter_genes(adata, min_cells=3)
+
+    adata.obs["n_counts"] = adata.X.sum(axis=1)
+
+    sc.pp.normalize_total(adata, target_sum=1e4)
+    sc.pp.log1p(adata)
+    adata.layers["unscaled"] = adata.X.copy()
+#    sc.pp.combat(adata, "dataset")
+    sc.pp.scale(adata, max_value=10)
+
+    sc.pp.pca(adata, n_comps=50)
+    sc.pp.neighbors(adata, n_neighbors=50, n_pcs=50)
+
+    sc.tl.umap(adata)
+
+    # leiden clustering
+    sc.tl.leiden(adata)
+
+    non_na_values = adata.obs.predicted_label.dropna()
+    counts_dict = non_na_values.value_counts().to_dict()
+    keep_cell_types = [cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1]
+    adata_filter = adata[adata.obs.cell_type.isin(keep_cell_types)]
+    #Filter out cell types with only one cell for this analysis
+    sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
+
+    adata.uns = adata.filter.uns
+
+    adata.write(processed_output_file_name)
+
+if __name__ == '__main__':
+    p = ArgumentParser()
+    p.add_argument('data_directory', type=Path)
+    p.add_argument('uuids_file', type=Path)
+    p.add_argument('tissue', type=str, nargs='?')
+    p.add_argument("--enable-manhole", action="store_true")
+
+    args = p.parse_args()
+
+    if args.enable_manhole:
+        import manhole
+
+        manhole.install(activate_on="USR1")
+
+    main(args.data_directory, args.uuids_file, args.tissue)
