@@ -181,7 +181,7 @@ if __name__ == '__main__':
     p.add_argument('data_directory', type=Path)
     p.add_argument('uuids_file', type=Path)
     p.add_argument('tissue', type=str, nargs='?')
-    p.add_argument("--enable-manhole", action="store_true")
+    p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
 
@@ -190,4 +190,4 @@ if __name__ == '__main__':
 
         manhole.install(activate_on="USR1")
 
-    main(args.data_directory, args.uuids_file, args.tissue)
+    main(args.data_directory, args.uuids_file, args.tissue, args.enable_manhole)
