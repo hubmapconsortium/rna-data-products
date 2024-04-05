@@ -190,4 +190,4 @@ if __name__ == '__main__':
 
         manhole.install(activate_on="USR1")
 
-    main(args.data_directory, args.uuids_file, args.tissue, args.enable_manhole)
+    main(args.data_directory, args.uuids_file, args.tissue)
