@@ -137,7 +137,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     directories = [data_directory / Path(uuid) for uuid in uuids]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
-    adatas = [annotate_file(file_pair[0],file_pair[1]) for file_pair in file_pairs]
+    adatas = [annotate_file(file_pair[0],file_pair[1], tissue) for file_pair in file_pairs]
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     adata = anndata.concat(adatas)
     adata.uns['annotation_metadata'] = annotation_metadata
