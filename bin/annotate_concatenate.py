@@ -73,10 +73,6 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
 
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
-
-    unfiltered_adata.uns['annotation_metadata'] = filtered_adata.uns['annotation_metadata'] if \
-        'annotation_metadata' in filtered_adata.uns.keys() else {'is_annotated':False}
-    print(unfiltered_adata.uns['annotation_metadata'])
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
     unfiltered_copy.obs['dataset'] = data_set_dir
@@ -99,7 +95,6 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
 
     unfiltered_copy = map_gene_ids(unfiltered_copy)
-    print(unfiltered_copy.uns_keys())
     return unfiltered_copy
 
 def read_gene_mapping() -> Dict[str, str]:
@@ -138,13 +133,11 @@ def map_gene_ids(adata):
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
-    uuids = pd.read_csv(uuids_file, sep='\t', dtype=str)["uuid"][1:]
+    uuids = pd.read_csv(uuids_file, sep='\t', dtype=str)["uuid"]
     directories = [data_directory / Path(uuid) for uuid in uuids]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
     adatas = [annotate_file(file_pair[0],file_pair[1], tissue) for file_pair in file_pairs]
-    for adata in adatas:
-        print(adata.uns_keys())
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     adata = anndata.concat(adatas)
     adata.uns['annotation_metadata'] = annotation_metadata
