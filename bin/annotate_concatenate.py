@@ -176,11 +176,11 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     non_na_values = adata.obs.predicted_label.dropna()
     counts_dict = non_na_values.value_counts().to_dict()
     keep_cell_types = [cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1]
-    adata_filter = adata[adata.obs.cell_type.isin(keep_cell_types)]
+    adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
     #Filter out cell types with only one cell for this analysis
     sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
 
-    adata.uns = adata.filter.uns
+    adata.uns = adata_filter.uns
 
     adata.write(processed_output_file_name)
 
