@@ -95,7 +95,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
             unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
 
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
-    unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index)
+    unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
 
     unfiltered_copy = map_gene_ids(unfiltered_copy)
@@ -119,6 +119,7 @@ def read_gene_mapping() -> Dict[str, str]:
 
 def map_gene_ids(adata):
     obsm = adata.obsm
+    uns = adata.uns
     gene_mapping = read_gene_mapping()
     keep_vars = [gene in gene_mapping for gene in adata.var.index]
     adata = adata[:, keep_vars]
@@ -127,6 +128,7 @@ def map_gene_ids(adata):
     adata = anndata.AnnData(aggregated, obs=adata.obs)
     adata.var.index = [gene_mapping[var] for var in adata.var.index]
     adata.obsm = obsm
+    adata.uns = uns
     # This introduces duplicate gene names, use Pandas for aggregation
     # since anndata doesn't have that functionality
     adata.X = scipy.sparse.csr_matrix(adata.X)
@@ -136,7 +138,7 @@ def map_gene_ids(adata):
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
-    uuids = pd.read_csv(uuids_file, sep='\t')["uuid"][1:]
+    uuids = pd.read_csv(uuids_file, sep='\t', dtype=str)["uuid"][1:]
     directories = [data_directory / Path(uuid) for uuid in uuids]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
@@ -146,6 +148,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     adata = anndata.concat(adatas)
     adata.uns['annotation_metadata'] = annotation_metadata
+
     adata.write(raw_output_file_name)
 
     adata.var_names_make_unique()
