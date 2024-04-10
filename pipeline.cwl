@@ -14,13 +14,13 @@ inputs:
     label: "Path to directory containing processed RNA datasets"
     type: Directory
 
-  uuids_file
+  uuids_file:
     label: "Path to a file containing a list of uuids for the dataset to be indexed"
     type: File
 
   tissue:
     label: "String description of tissue type"
-    type: str?
+    type: string?
 
 outputs:
 
@@ -36,12 +36,14 @@ steps:
 
   - id: annotate-concatenate
     in:
-      - id: data_directories
-        source: data_directories
-      - id: nexus_token
-        source: nexus_token
-      - id: uuids_file:
+      - id: enable_manhole
+        source: enable_manhole
+      - id: data_directory
+        source: data_directory
+      - id: uuids_file
         source: uuids_file
+      - id: tissue
+        source: tissue
 
     out:
       - raw_h5ad_file
