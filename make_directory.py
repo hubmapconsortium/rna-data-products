@@ -39,7 +39,7 @@ def get_input_directory(data_directory, uuid):
 
 
 def main(data_directory: Path, uuids_file: Path):
-    uuids = pd.read_csv(uuids_file, sep='\t')[["uuid"], ["hubmap_id"]]
+    uuids = pd.read_csv(uuids_file, sep='\t')["uuid"]
     uuids = uuids.dropna()
     h5ads_base_directory = Path("h5ads")
     h5ads_base_directory.mkdir(exist_ok=True)  # Create h5ads directory if it doesn't exist

@@ -73,6 +73,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
 
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
+    print("Unfiltered dataset before annotate_file: ", unfiltered_adata)
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
     unfiltered_copy.obs['dataset'] = data_set_dir
@@ -84,7 +85,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
     print(unfiltered_copy.uns_keys())
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
-    unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index)
+    unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
         for k in dataset_clusters_and_cell_types:
@@ -93,8 +94,9 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
     unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
-
+    print("Unifiltered dataset before map_gene_ids: ", unfiltered_copy)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
+    print("Unfiltered dataset after map_gene_ids: ", unfiltered_copy)
     return unfiltered_copy
 
 def read_gene_mapping() -> Dict[str, str]:
@@ -116,12 +118,12 @@ def map_gene_ids(adata):
     obsm = adata.obsm
     uns = adata.uns
     gene_mapping = read_gene_mapping()
-    keep_vars = [gene in gene_mapping for gene in adata.var.index]
-    adata = adata[:, keep_vars]
+    has_hugo_symbol = [gene in gene_mapping for gene in adata.var.index]
+    # adata = adata[:, has_hugo_symbol]
     temp_df = pd.DataFrame(adata.X.todense(), index=adata.obs.index, columns=adata.var.index)
     aggregated = temp_df.groupby(level=0, axis=1).sum()
     adata = anndata.AnnData(aggregated, obs=adata.obs)
-    adata.var.index = [gene_mapping[var] for var in adata.var.index]
+    adata.var['hugo_symbol'] = [gene_mapping.get(var, np.nan) for var in adata.var.index]
     adata.obsm = obsm
     adata.uns = uns
     # This introduces duplicate gene names, use Pandas for aggregation
@@ -129,6 +131,7 @@ def map_gene_ids(adata):
     adata.X = scipy.sparse.csr_matrix(adata.X)
     adata.var_names_make_unique()
     return adata
+
 
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
@@ -139,8 +142,12 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     file_pairs = [find_file_pairs(directory) for directory in directories]
     adatas = [annotate_file(file_pair[0],file_pair[1], tissue) for file_pair in file_pairs]
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
-    adata = anndata.concat(adatas)
+    print("First anndata object:", adatas[0])
+    print("Second anndata object: ", adatas[1])
+    saved_var = adatas[0].var
+    adata = anndata.concat(adatas, join="outer")
     adata.uns['annotation_metadata'] = annotation_metadata
+    adata.var = saved_var
 
     adata.write(raw_output_file_name)
 
