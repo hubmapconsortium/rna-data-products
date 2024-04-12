@@ -33,5 +33,6 @@ RUN mkdir /root/.ssh
 
 COPY bin /opt
 COPY data /opt/data
+COPY utils.py /opt
 
 WORKDIR /opt
