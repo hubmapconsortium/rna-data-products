@@ -64,19 +64,20 @@ def get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, datase
         return annotation_dict
 
 
-def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str) -> Tuple[anndata.AnnData, anndata.AnnData]:
-
+def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, uuids_df:pd.DataFrame) -> Tuple[anndata.AnnData, anndata.AnnData]:
     # Get the directory
     data_set_dir = fspath(unfiltered_file.parent.stem)
     # And the tissue type
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
-
+    hubmap_id = uuids_df.loc[uuids_df['uuid'] == data_set_dir, 'hubmap_id'].values[0]
+    print("Hubmap ID: ", hubmap_id)
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     print("Unfiltered dataset before annotate_file: ", unfiltered_adata)
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
     unfiltered_copy.obs['dataset'] = data_set_dir
+    unfiltered_copy.obs['hubmap_id'] = hubmap_id
     unfiltered_copy.obs['organ'] = tissue_type
     unfiltered_copy.obs['modality'] = 'rna'
     unfiltered_copy.obs['dataset_leiden'] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
@@ -136,11 +137,11 @@ def map_gene_ids(adata):
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
-    uuids = pd.read_csv(uuids_file, sep='\t', dtype=str)["uuid"]
-    directories = [data_directory / Path(uuid) for uuid in uuids]
+    uuids_df = pd.read_csv(uuids_file, sep='\t', dtype=str)
+    directories = [data_directory / Path(uuid) for uuid in uuids_df['uuid']]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
-    adatas = [annotate_file(file_pair[0],file_pair[1], tissue) for file_pair in file_pairs]
+    adatas = [annotate_file(file_pair[0],file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     print("First anndata object:", adatas[0])
     print("Second anndata object: ", adatas[1])
