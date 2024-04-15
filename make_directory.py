@@ -43,7 +43,7 @@ def main(data_directory: Path, uuids_file: Path):
     uuids = uuids.dropna()
     h5ads_base_directory = Path("h5ads")
     h5ads_base_directory.mkdir(exist_ok=True)  # Create h5ads directory if it doesn't exist
-    for uuid in uuids["uuid"]:
+    for uuid in uuids:
         h5ads_directory = h5ads_base_directory / uuid
         h5ads_directory.mkdir(parents=True, exist_ok=True)  # Create UUID-specific directory
         input_directory = get_input_directory(data_directory, uuid)
