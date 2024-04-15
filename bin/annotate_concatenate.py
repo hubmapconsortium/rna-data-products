@@ -70,10 +70,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     # And the tissue type
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
     hubmap_id = uuids_df.loc[uuids_df['uuid'] == data_set_dir, 'hubmap_id'].values[0]
-    print("Hubmap ID: ", hubmap_id)
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
-    print("Unfiltered dataset before annotate_file: ", unfiltered_adata)
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs['barcode'] = unfiltered_adata.obs.index
     unfiltered_copy.obs['dataset'] = data_set_dir
@@ -95,9 +93,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
     unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
-    print("Unifiltered dataset before map_gene_ids: ", unfiltered_copy)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
-    print("Unfiltered dataset after map_gene_ids: ", unfiltered_copy)
     return unfiltered_copy
 
 def read_gene_mapping() -> Dict[str, str]:
