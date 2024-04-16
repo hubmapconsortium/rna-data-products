@@ -8,8 +8,8 @@ organ_types_yaml_file = 'bin/organ_types.yaml'
 
 def get_uuids(organ_name_mapping:dict, organ:str=None):
   organ_code_mapping = {organ_name_mapping[key]:key for key in organ_name_mapping}
-  url = f'https://search.api.hubmapconsortium.org/v3/param-search/datasets?dataset_type=RNAseq&origin_samples.organ={organ_code_mapping[organ]}' if organ else \
-    'https://search.api.hubmapconsortium.org/v3/param-search/datasets?dataset_type=RNAseq'
+  url = f'https://search.api.hubmapconsortium.org/v3/param-search/datasets?dataset_type=RNAseq%20%5BSalmon%5D&origin_samples.organ={organ_code_mapping[organ]}' if organ else \
+    'https://search.api.hubmapconsortium.org/v3/param-search/datasets?dataset_type=RNAseq%20%5BSalmon%5D'
   uuids = [item['uuid'] for item in requests.get(url).json()]
   hubmap_ids = [item['hubmap_id'] for item in requests.get(url).json()]
   return uuids, hubmap_ids
