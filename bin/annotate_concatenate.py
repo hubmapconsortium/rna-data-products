@@ -60,7 +60,10 @@ def get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, datase
     else:
         annotation_dict['dataset_leiden'] = f"{dataset_uuid}-{filtered_adata.obs.at[barcode, 'leiden']}"
         for field in annotation_fields:
-            annotation_dict[field] = filtered_adata.obs.at[barcode, field]
+            if field not in filtered_adata.obs_keys():
+                annotation_dict[field] = np.nan
+            else:
+                annotation_dict[field] = filtered_adata.obs.at[barcode, field]
         return annotation_dict
 
 
