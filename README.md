@@ -1,4 +1,4 @@
-### rna-data-products
+# rna-data-products
 A Python and CWL pipeline for concatenating HuBMAP RNA-seq [Salmon] data into data products per organ and one large RNA-seq [Salmon] data product.
 ## Pipeline steps
 * Create a UUIDs TSV file with all UUIDs and HuBMAP IDs of public processed data wanted for the run.
@@ -7,9 +7,9 @@ A Python and CWL pipeline for concatenating HuBMAP RNA-seq [Salmon] data into da
 ## Requirements
 Check the list of python packages in `docker/environment.txt`
 ## How to run
-# Step 1
+### Step 1
 `python3 make_uuids_tsv.py [tissue_type]`
-# Step 2
+### Step 2
 `python3 make_directory.py /hive/hubmap/data/ [uuids_file]`
-# Step 3 
+### Step 3 
 `cwltool pipeline.cwl --[data_directory] --[uuids_file] --[tissue_type]`
