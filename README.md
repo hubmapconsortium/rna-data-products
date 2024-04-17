@@ -5,7 +5,7 @@ A Python and CWL pipeline for concatenating HuBMAP RNA-seq [Salmon] data into da
 * With the UUIDs TSV, create a data directory of all H5ADs needed for the run.
 * Annotate and concatenate a raw data product and a processed data product.
 ## Requirements
-Check the list of python packages in docker/environment.txt
+Check the list of python packages in `docker/environment.txt`
 ## How to run
 # Step 1
 `python3 make_uuids_tsv.py [tissue_type]`
