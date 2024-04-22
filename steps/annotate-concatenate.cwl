@@ -42,11 +42,11 @@ outputs:
   processed_h5ad_file:
     type: File
     outputBinding:
-      glob: "*/*_processed.h5ad"
+      glob: "*_processed.h5ad"
     doc: h5ad file containing processed expression data
   
   umap_png:
     type: File
     outputBinding:
-      glob: "*.png"
+      glob: "*/*.png"
     doc: leiden cluster umap png
