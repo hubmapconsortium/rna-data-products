@@ -3,6 +3,7 @@
 import json
 from argparse import ArgumentParser
 from collections import defaultdict
+from datetime import datetime
 from os import fspath, walk
 from pathlib import Path
 from typing import Dict, Tuple
@@ -10,6 +11,7 @@ from typing import Dict, Tuple
 import pandas as pd
 import scipy.sparse
 import scanpy as sc
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 import requests
@@ -84,7 +86,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     unfiltered_copy.obs['dataset_leiden'] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.uns['annotation_metadata'] = filtered_adata.uns['annotation_metadata'] if \
         'annotation_metadata' in filtered_adata.uns.keys() else {'is_annotated':False}
-    print(unfiltered_copy.uns_keys())
+    unfiltered_copy.uns['creation_date_time'] = str(datetime.now())
+    unfiltered_copy.uns['datasets'] = list(set(unfiltered_copy.obs.hubmap_id))
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
@@ -96,6 +99,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
     unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
+    print("Predicted label value counts: ", unfiltered_copy.obs['predicted_label'].value_counts())
+    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
 
@@ -142,11 +147,17 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     file_pairs = [find_file_pairs(directory) for directory in directories]
     adatas = [annotate_file(file_pair[0],file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
+    creation_date_time = {adata.obs.dataset.iloc[0]:adata.uns['creation_date_time'] for adata in adatas}
+    cell_type_counts = {adata.obs.dataset.iloc[0]:adata.uns['cell_type_counts'] for adata in adatas}
+    datasets = {adata.obs.dataset.iloc[0]:adata.uns['datasets'] for adata in adatas}
     print("First anndata object:", adatas[0])
     print("Second anndata object: ", adatas[1])
     saved_var = adatas[0].var
     adata = anndata.concat(adatas, join="outer")
     adata.uns['annotation_metadata'] = annotation_metadata
+    adata.uns['creation_date_time'] = creation_date_time
+    adata.uns['cell_type_counts'] = cell_type_counts
+    adata.uns['datasets'] = datasets
     adata.var = saved_var
 
     adata.write(raw_output_file_name)
@@ -179,9 +190,11 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
     #Filter out cell types with only one cell for this analysis
     sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
-
     adata.uns = adata_filter.uns
+    adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_dict()
 
+    
+    sc.pl.umap(adata, color="leiden", show=False, save=".png")
     adata.write(processed_output_file_name)
 
 if __name__ == '__main__':

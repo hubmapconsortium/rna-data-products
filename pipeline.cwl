@@ -30,6 +30,9 @@ outputs:
   processed_h5ad_file:
     outputSource: annotate-concatenate/processed_h5ad_file
     type: File
+  umap_png:
+    outputSource: annotate-concatenate/umap_png
+    type: File
 
 
 steps:
@@ -48,6 +51,7 @@ steps:
     out:
       - raw_h5ad_file
       - processed_h5ad_file
+      - umap_png
 
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
