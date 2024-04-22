@@ -194,7 +194,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_dict()
 
     
-    sc.pl.umap(adata, color="leiden", show=False, save="umap_by_leiden_cluster.png")
+    sc.pl.umap(adata, color="leiden", show=False, save=".png")
     adata.write(processed_output_file_name)
 
 if __name__ == '__main__':
