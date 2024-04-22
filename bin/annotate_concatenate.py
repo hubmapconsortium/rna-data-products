@@ -91,7 +91,6 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
-    print("Celll type counts: ", unfiltered_copy.uns['cell_type_counts'])
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
         for k in dataset_clusters_and_cell_types:
