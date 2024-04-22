@@ -91,8 +91,6 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
-    print("Predicted label value counts: ", unfiltered_copy.obs['predicted_label'].value_counts())
-    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
     print("Celll type counts: ", unfiltered_copy.uns['cell_type_counts'])
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
@@ -102,6 +100,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
     unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
+    print("Predicted label value counts: ", unfiltered_copy.obs['predicted_label'].value_counts())
+    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
 
@@ -211,7 +211,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     #Filter out cell types with only one cell for this analysis
     sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
     adata.uns = adata_filter.uns
-    adata.uns['cell_type_counts'] = list(adata.obs['predicted_label'].value_counts())
+    adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_list()
 
     #Write outputs
     with new_plot():
