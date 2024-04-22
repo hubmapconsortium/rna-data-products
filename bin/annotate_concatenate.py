@@ -137,31 +137,6 @@ def map_gene_ids(adata):
     adata.var_names_make_unique()
     return adata
 
-#Throw this in utils later, use it here for now
-def new_plot():
-    """
-    When used in a `with` block, clears matplotlib internal state
-    after plotting and saving things. Probably not necessary to be this
-    thorough in clearing everything, but extra calls to `plt.clf()` and
-    `plf.close()` don't *hurt*
-
-    Intended usage:
-        ```
-        with new_plot():
-            do_matplotlib_things()
-
-            plt.savefig(path)
-            # or
-            fig.savefig(path)
-        ```
-    """
-    plt.clf()
-    try:
-        yield
-    finally:
-        plt.clf()
-        plt.close()
-
 
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
@@ -218,10 +193,8 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     adata.uns = adata_filter.uns
     adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_dict()
 
-    #Write outputs
-    with new_plot():
-        sc.pl.umap(adata, color="leiden", show=False)
-        plt.savefig("umap_by_leiden_cluster.png", bbox_inches="tight")
+    
+    sc.pl.umap(adata, color="leiden", show=False, save=".png")
     adata.write(processed_output_file_name)
 
 if __name__ == '__main__':
