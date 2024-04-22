@@ -3,6 +3,7 @@
 import json
 from argparse import ArgumentParser
 from collections import defaultdict
+from datetime import datetime
 from os import fspath, walk
 from pathlib import Path
 from typing import Dict, Tuple
@@ -84,6 +85,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     unfiltered_copy.obs['dataset_leiden'] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.uns['annotation_metadata'] = filtered_adata.uns['annotation_metadata'] if \
         'annotation_metadata' in filtered_adata.uns.keys() else {'is_annotated':False}
+    unfiltered_copy.uns['creation_date_time'] = datetime.now()
     print(unfiltered_copy.uns_keys())
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
