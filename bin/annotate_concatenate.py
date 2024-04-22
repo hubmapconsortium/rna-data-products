@@ -90,9 +90,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
-    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
+    unfiltered_copy.uns['cell_type_counts'] = list(unfiltered_copy.obs['predicted_label'].value_counts())
     print("Celll type counts: ", unfiltered_copy.uns['cell_type_counts'])
-    print(unfiltered_copy.uns_keys())
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
         for k in dataset_clusters_and_cell_types:
@@ -146,12 +145,12 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
     adatas = [annotate_file(file_pair[0],file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
-    annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
+    uns = {adata.uns for adata in adatas}
     print("First anndata object:", adatas[0])
     print("Second anndata object: ", adatas[1])
     saved_var = adatas[0].var
     adata = anndata.concat(adatas, join="outer")
-    adata.uns['annotation_metadata'] = annotation_metadata
+    adata.uns = uns
     adata.var = saved_var
 
     adata.write(raw_output_file_name)
@@ -185,7 +184,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     #Filter out cell types with only one cell for this analysis
     sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
     adata.uns = adata_filter.uns
-    adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_dict()
+    adata.uns['cell_type_counts'] = list(adata.obs['predicted_label'].value_counts())
 
     adata.write(processed_output_file_name)
 
