@@ -30,7 +30,7 @@ outputs:
   processed_h5ad_file:
     outputSource: annotate-concatenate/processed_h5ad_file
     type: File
-  uma_png:
+  umap_png:
     outputSource: annotate-concatenate/umap_png
 
 
