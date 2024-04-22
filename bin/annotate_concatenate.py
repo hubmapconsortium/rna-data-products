@@ -11,6 +11,7 @@ from typing import Dict, Tuple
 import pandas as pd
 import scipy.sparse
 import scanpy as sc
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 import requests
@@ -90,7 +91,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
-    unfiltered_copy.uns['cell_type_counts'] = list(unfiltered_copy.obs['predicted_label'].value_counts())
+    print("Predicted label value counts: ", unfiltered_copy.obs['predicted_label'].value_counts())
+    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
     print("Celll type counts: ", unfiltered_copy.uns['cell_type_counts'])
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
@@ -135,6 +137,31 @@ def map_gene_ids(adata):
     adata.X = scipy.sparse.csr_matrix(adata.X)
     adata.var_names_make_unique()
     return adata
+
+#Throw this in utils later, use it here for now
+def new_plot():
+    """
+    When used in a `with` block, clears matplotlib internal state
+    after plotting and saving things. Probably not necessary to be this
+    thorough in clearing everything, but extra calls to `plt.clf()` and
+    `plf.close()` don't *hurt*
+
+    Intended usage:
+        ```
+        with new_plot():
+            do_matplotlib_things()
+
+            plt.savefig(path)
+            # or
+            fig.savefig(path)
+        ```
+    """
+    plt.clf()
+    try:
+        yield
+    finally:
+        plt.clf()
+        plt.close()
 
 
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
@@ -186,6 +213,10 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     adata.uns = adata_filter.uns
     adata.uns['cell_type_counts'] = list(adata.obs['predicted_label'].value_counts())
 
+    #Write outputs
+    with new_plot():
+        sc.pl.umap(adata, color="leiden", show=False)
+        plt.savefig("umap_by_leiden_cluster.png", bbox_inches="tight")
     adata.write(processed_output_file_name)
 
 if __name__ == '__main__':
