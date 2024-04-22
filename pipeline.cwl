@@ -32,6 +32,7 @@ outputs:
     type: File
   umap_png:
     outputSource: annotate-concatenate/umap_png
+    type: File
 
 
 steps:
