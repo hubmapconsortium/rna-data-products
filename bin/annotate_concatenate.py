@@ -86,7 +86,7 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     unfiltered_copy.obs['dataset_leiden'] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.uns['annotation_metadata'] = filtered_adata.uns['annotation_metadata'] if \
         'annotation_metadata' in filtered_adata.uns.keys() else {'is_annotated':False}
-    unfiltered_copy.uns['creation_date_time'] = datetime.now()
+    unfiltered_copy.uns['creation_date_time'] = str(datetime.now())
     unfiltered_copy.uns['datasets'] = list(set(unfiltered_copy.obs.hubmap_id))
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
@@ -174,6 +174,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
     creation_date_time = {adata.obs.dataset.iloc[0]:adata.uns['creation_date_time'] for adata in adatas}
     cell_type_counts = {adata.obs.dataset.iloc[0]:adata.uns['cell_type_counts'] for adata in adatas}
+    datasets = {adata.obs.dataset.iloc[0]:adata.uns['datasets'] for adata in adatas}
     print("First anndata object:", adatas[0])
     print("Second anndata object: ", adatas[1])
     saved_var = adatas[0].var
@@ -181,6 +182,7 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     adata.uns['annotation_metadata'] = annotation_metadata
     adata.uns['creation_date_time'] = creation_date_time
     adata.uns['cell_type_counts'] = cell_type_counts
+    adata.uns['datasets'] = datasets
     adata.var = saved_var
 
     adata.write(raw_output_file_name)
