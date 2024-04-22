@@ -11,6 +11,7 @@ from typing import Dict, Tuple
 import pandas as pd
 import scipy.sparse
 import scanpy as sc
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 import requests
@@ -90,8 +91,6 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs['prediction_score'] = pd.Series(index=unfiltered_copy.obs.index, dtype=np.float64)
-    unfiltered_copy.uns['cell_type_counts'] = list(unfiltered_copy.obs['predicted_label'].value_counts())
-    print("Celll type counts: ", unfiltered_copy.uns['cell_type_counts'])
     for barcode in unfiltered_copy.obs.index:
         dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, data_set_dir)
         for k in dataset_clusters_and_cell_types:
@@ -100,6 +99,8 @@ def annotate_file(filtered_file: Path, unfiltered_file: Path, tissue_type:str, u
     cell_ids_list = ["-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs['barcode']]
     unfiltered_copy.obs['cell_id'] = pd.Series(cell_ids_list, index=unfiltered_copy.obs.index, dtype=str)
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
+    print("Predicted label value counts: ", unfiltered_copy.obs['predicted_label'].value_counts())
+    unfiltered_copy.uns['cell_type_counts'] = unfiltered_copy.obs['predicted_label'].value_counts().to_dict()
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
 
@@ -136,6 +137,31 @@ def map_gene_ids(adata):
     adata.var_names_make_unique()
     return adata
 
+#Throw this in utils later, use it here for now
+def new_plot():
+    """
+    When used in a `with` block, clears matplotlib internal state
+    after plotting and saving things. Probably not necessary to be this
+    thorough in clearing everything, but extra calls to `plt.clf()` and
+    `plf.close()` don't *hurt*
+
+    Intended usage:
+        ```
+        with new_plot():
+            do_matplotlib_things()
+
+            plt.savefig(path)
+            # or
+            fig.savefig(path)
+        ```
+    """
+    plt.clf()
+    try:
+        yield
+    finally:
+        plt.clf()
+        plt.close()
+
 
 def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
@@ -145,12 +171,16 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
     adatas = [annotate_file(file_pair[0],file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
-    uns = {adata.uns for adata in adatas}
+    annotation_metadata = {adata.obs.dataset.iloc[0]:adata.uns['annotation_metadata'] for adata in adatas}
+    creation_date_time = {adata.obs.dataset.iloc[0]:adata.uns['creation_date_time'] for adata in adatas}
+    cell_type_counts = {adata.obs.dataset.iloc[0]:adata.uns['cell_type_counts'] for adata in adatas}
     print("First anndata object:", adatas[0])
     print("Second anndata object: ", adatas[1])
     saved_var = adatas[0].var
     adata = anndata.concat(adatas, join="outer")
-    adata.uns = uns
+    adata.uns['annotation_metadata'] = annotation_metadata
+    adata.uns['creation_date_time'] = creation_date_time
+    adata.uns['cell_type_counts'] = cell_type_counts
     adata.var = saved_var
 
     adata.write(raw_output_file_name)
@@ -184,8 +214,12 @@ def main(data_directory:Path, uuids_file: Path, tissue:str=None):
     #Filter out cell types with only one cell for this analysis
     sc.tl.rank_genes_groups(adata_filter, 'predicted_label')
     adata.uns = adata_filter.uns
-    adata.uns['cell_type_counts'] = list(adata.obs['predicted_label'].value_counts())
+    adata.uns['cell_type_counts'] = adata.obs['predicted_label'].value_counts().to_dict()
 
+    #Write outputs
+    with new_plot():
+        sc.pl.umap(adata, color="leiden", show=False)
+        plt.savefig("umap_by_leiden_cluster.png", bbox_inches="tight")
     adata.write(processed_output_file_name)
 
 if __name__ == '__main__':
