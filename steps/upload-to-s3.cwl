@@ -37,3 +37,9 @@ inputs:
         doc: AWS secret access key
         inputBinding: 
             position: 4
+
+outputs: 
+    finished_text:
+        type: File
+        outputBinding:
+            glob: "*.txt"

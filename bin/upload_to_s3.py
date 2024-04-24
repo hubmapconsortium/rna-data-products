@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from argparse import ArgumentParser
 import awswrangler as wr
 import boto3
@@ -19,6 +21,9 @@ def upload_files_to_s3(paths_to_files, access_key_id, secret_access_key):
 def main(raw_h5ad, processed_h5ad, umap, access_key_id, secret_access_key):
     files = [raw_h5ad, processed_h5ad, umap]
     upload_files_to_s3(files, access_key_id, secret_access_key)
+    f = open("finished.txt", "w")
+    f.write("Finished da pipeline")
+    f.close()
 
 
 if __name__ == '__main__':
