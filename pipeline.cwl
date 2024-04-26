@@ -45,7 +45,6 @@ outputs:
     outputSource: upload-to-s3/finished_text
     type: File
 
-
 steps:
 
   - id: annotate-concatenate
