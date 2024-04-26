@@ -21,6 +21,14 @@ inputs:
   tissue:
     label: "String description of tissue type"
     type: string?
+  
+  access_key_id:
+    label: "AWS access key id"
+    type: string
+  
+  secret_access_key: 
+    label: "AWS secret access key"
+    type: string
 
 outputs:
 
@@ -33,7 +41,9 @@ outputs:
   umap_png:
     outputSource: annotate-concatenate/umap_png
     type: File
-
+  finished_text:
+    outputSource: upload-to-s3/finished_text
+    type: File
 
 steps:
 
@@ -55,3 +65,22 @@ steps:
 
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
+
+  - id: upload-to-s3
+    in:
+      - id: raw_h5ad_file
+        source: annotate-concatenate/raw_h5ad_file
+      - id: processed_h5ad_file
+        source: annotate-concatenate/processed_h5ad_file
+      - id: umap_png
+        source: annotate-concatenate/umap_png
+      - id: access_key_id
+        source: access_key_id
+      - id: secret_access_key
+        source: secret_access_key
+    
+    out:
+      - finished_text
+    
+    run: steps/upload-to-s3.cwl
+    label: "Uploads the pipeline outputs to s3"

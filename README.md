@@ -3,6 +3,7 @@ A Python and CWL pipeline for concatenating HuBMAP RNA-seq [Salmon] data into da
 ## Pipeline steps
 * Create a UUIDs TSV file with all UUIDs and HuBMAP IDs of public processed data wanted for the run.
 * With the UUIDs TSV, create a data directory of all H5ADs needed for the run.
+* Make an AWS access key id and a secret access key to upload the files to S3 bucket.
 * Annotate and concatenate a raw data product and a processed data product.
 ## Requirements
 Check the list of python packages in `docker/requirements.txt`
@@ -12,4 +13,4 @@ Check the list of python packages in `docker/requirements.txt`
 ### Step 2
 `python3 make_directory.py /hive/hubmap/data/ [uuids_file]`
 ### Step 3 
-`cwltool pipeline.cwl --[data_directory] --[uuids_file] --[tissue_type]`
+`cwltool pipeline.cwl --[data_directory] --[uuids_file] --[tissue_type] --[access_key_id] --[secret_access_key]`
