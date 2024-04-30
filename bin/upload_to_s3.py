@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from pathlib import Path
+
 import awswrangler as wr
 import boto3
-from pathlib import Path
 
 
 def upload_file_to_s3(path_to_file, boto_session):
@@ -26,14 +27,19 @@ def main(raw_h5ad, processed_h5ad, umap, access_key_id, secret_access_key):
     f.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = ArgumentParser()
-    p.add_argument('raw_h5ad_file', type=Path)
-    p.add_argument('processed_h5ad_file', type=Path)
-    p.add_argument('umap_png', type=Path, nargs='?')
-    p.add_argument('access_key_id', type=str)
-    p.add_argument('secret_access_key', type=str)
-
+    p.add_argument("raw_h5ad_file", type=Path)
+    p.add_argument("processed_h5ad_file", type=Path)
+    p.add_argument("umap_png", type=Path, nargs="?")
+    p.add_argument("access_key_id", type=str)
+    p.add_argument("secret_access_key", type=str)
 
     args = p.parse_args()
-    main(args.raw_h5ad_file, args.processed_h5ad_file, args.umap_png, args.access_key_id, args.secret_access_key)
+    main(
+        args.raw_h5ad_file,
+        args.processed_h5ad_file,
+        args.umap_png,
+        args.access_key_id,
+        args.secret_access_key,
+    )
