@@ -29,7 +29,8 @@ inputs:
     tissue:
         type: string?
         doc: tissue type
-        inputBinding: 3
+        inputBinding: 
+            position: 3
     
     access_key_id:
         type: string?
