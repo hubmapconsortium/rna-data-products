@@ -39,10 +39,10 @@ def get_input_directory(data_directory, uuid):
                     return consortium_subdir
 
 
-def main(data_directory: Path, uuids_file: Path):
+def main(data_directory: Path, uuids_file: Path, tissue: str):
     uuids = pd.read_csv(uuids_file, sep="\t")["uuid"]
     uuids = uuids.dropna()
-    h5ads_base_directory = Path("h5ads")
+    h5ads_base_directory = Path(f"{tissue}_h5ads")
     h5ads_base_directory.mkdir(
         exist_ok=True
     )  # Create h5ads directory if it doesn't exist
@@ -69,7 +69,8 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("data_directory", type=Path)
     p.add_argument("uuids_file", type=Path)
+    p.add_argument("tissue", type=str)
 
     args = p.parse_args()
 
-    main(args.data_directory, args.uuids_file)
+    main(args.data_directory, args.uuids_file, args.tissue)
