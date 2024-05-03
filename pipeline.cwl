@@ -74,6 +74,8 @@ steps:
         source: annotate-concatenate/processed_h5ad_file
       - id: umap_png
         source: annotate-concatenate/umap_png
+      - id: tissue
+        source: tissue
       - id: access_key_id
         source: access_key_id
       - id: secret_access_key
