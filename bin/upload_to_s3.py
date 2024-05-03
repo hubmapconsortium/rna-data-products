@@ -19,8 +19,9 @@ def upload_files_to_s3(paths_to_files, tissue, access_key_id, secret_access_key)
         upload_file_to_s3(path, tissue, boto_session)
 
 
-def main(raw_h5ad, processed_h5ad, umap, tissue, access_key_id, secret_access_key):
+def main(raw_h5ad, processed_h5ad, umap, access_key_id, secret_access_key):
     files = [raw_h5ad, processed_h5ad, umap]
+    tissue = str(raw_h5ad).rstrip("_")
     upload_files_to_s3(files, tissue, access_key_id, secret_access_key)
     f = open("finished.txt", "w")
     f.write("Finished da pipeline")
@@ -31,8 +32,7 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("processed_h5ad_file", type=Path)
-    p.add_argument("umap_png", type=Path, nargs="?")
-    p.add_argument("tissue", type=str)
+    p.add_argument("umap_png", type=Path)
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
 
@@ -41,7 +41,6 @@ if __name__ == "__main__":
         args.raw_h5ad_file,
         args.processed_h5ad_file,
         args.umap_png,
-        args.tissue,
         args.access_key_id,
         args.secret_access_key,
     )
