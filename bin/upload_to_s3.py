@@ -8,7 +8,7 @@ import boto3
 
 
 def upload_file_to_s3(path_to_file, tissue, boto_session):
-    remote_path = f"s3://hubmap-data-products/{tissue}/{path_to_file.name}"
+    remote_path = f"s3://hubmap-data-products/{tissue}/{path_to_file.name}" if tissue else f"s3://hubmap-data-products/rna/{path_to_file.name}"
     with open(path_to_file, "rb") as local_f:
         wr.s3.upload(local_file=local_f, path=remote_path, boto3_session=boto_session)
 
@@ -16,12 +16,12 @@ def upload_file_to_s3(path_to_file, tissue, boto_session):
 def upload_files_to_s3(paths_to_files, tissue, access_key_id, secret_access_key):
     boto_session = boto3.Session(access_key_id, secret_access_key)
     for path in paths_to_files:
+        print(f"Uploading {path.name}")
         upload_file_to_s3(path, tissue, boto_session)
 
 
-def main(raw_h5ad, processed_h5ad, umap, access_key_id, secret_access_key):
+def main(raw_h5ad, processed_h5ad, umap, access_key_id, secret_access_key, tissue: str = None):
     files = [raw_h5ad, processed_h5ad, umap]
-    tissue = str(raw_h5ad).rstrip("_")
     upload_files_to_s3(files, tissue, access_key_id, secret_access_key)
     f = open("finished.txt", "w")
     f.write("Finished da pipeline")
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("processed_h5ad_file", type=Path)
     p.add_argument("umap_png", type=Path)
+    p.add_argument("tissue", type=str, nargs="?")
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
 
@@ -43,4 +44,5 @@ if __name__ == "__main__":
         args.umap_png,
         args.access_key_id,
         args.secret_access_key,
+        args.tissue
     )
