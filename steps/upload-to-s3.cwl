@@ -26,17 +26,23 @@ inputs:
         inputBinding: 
             position: 2
     
-    access_key_id:
-        type: string
-        doc: AWS access key id
+    tissue:
+        type: string?
+        doc: tissue type
         inputBinding: 
             position: 3
+    
+    access_key_id:
+        type: string?
+        doc: AWS access key id
+        inputBinding: 
+            position: 4
     
     secret_access_key:
         type: string
         doc: AWS secret access key
         inputBinding: 
-            position: 4
+            position: 5
 
 outputs: 
     finished_text:

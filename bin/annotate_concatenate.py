@@ -111,8 +111,6 @@ def annotate_file(
         if "annotation_metadata" in filtered_adata.uns.keys()
         else {"is_annotated": False}
     )
-    unfiltered_copy.uns["creation_date_time"] = str(datetime.now())
-    unfiltered_copy.uns["datasets"] = list(set(unfiltered_copy.obs.hubmap_id))
     for field in annotation_fields:
         unfiltered_copy.obs[field] = pd.Series(
             index=unfiltered_copy.obs.index, dtype=str
@@ -134,13 +132,6 @@ def annotate_file(
         cell_ids_list, index=unfiltered_copy.obs.index, dtype=str
     )
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
-    print(
-        "Predicted label value counts: ",
-        unfiltered_copy.obs["predicted_label"].value_counts(),
-    )
-    unfiltered_copy.uns["cell_type_counts"] = (
-        unfiltered_copy.obs["predicted_label"].value_counts().to_dict()
-    )
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
 
@@ -193,6 +184,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories]
+    print("Annotating objects")
     adatas = [
         annotate_file(file_pair[0], file_pair[1], tissue, uuids_df)
         for file_pair in file_pairs
@@ -200,25 +192,18 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     annotation_metadata = {
         adata.obs.dataset.iloc[0]: adata.uns["annotation_metadata"] for adata in adatas
     }
-    creation_date_time = {
-        adata.obs.dataset.iloc[0]: adata.uns["creation_date_time"] for adata in adatas
-    }
-    cell_type_counts = {
-        adata.obs.dataset.iloc[0]: adata.uns["cell_type_counts"] for adata in adatas
-    }
-    datasets = {adata.obs.dataset.iloc[0]: adata.uns["datasets"] for adata in adatas}
-    print("First anndata object:", adatas[0])
-    print("Second anndata object: ", adatas[1])
     saved_var = adatas[0].var
+    print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
+    adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.uns["annotation_metadata"] = annotation_metadata
-    adata.uns["creation_date_time"] = creation_date_time
-    adata.uns["cell_type_counts"] = cell_type_counts
-    adata.uns["datasets"] = datasets
+    adata.uns["creation_date_time"] = str(datetime.now())
+    adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
     adata.var = saved_var
-
+    print(f"Writing {raw_output_file_name}")
     adata.write(raw_output_file_name)
 
+    print("Processing data product")
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
 
@@ -257,6 +242,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     sc.pl.umap(
         adata, color="leiden", show=False, save=f"{tissue}.png" if tissue else "rna.png"
     )
+    print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
 
 
