@@ -11,6 +11,6 @@ Check the list of python packages in `docker/requirements.txt`
 ### Step 1
 `python3 make_uuids_tsv.py [tissue_type]`
 ### Step 2
-`python3 make_directory.py /hive/hubmap/data/ [uuids_file]`
+`python3 make_directory.py /hive/hubmap/data/ [uuids_file] [tissue_type]`
 ### Step 3 
 `cwltool pipeline.cwl --[data_directory] --[uuids_file] --[tissue_type] --[access_key_id] --[secret_access_key]`
