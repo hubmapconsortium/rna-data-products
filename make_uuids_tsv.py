@@ -81,6 +81,7 @@ def main(tissue_type: str):
     if tissue_type not in organ_dict.values():
         print(f"Tissue {tissue_type} not found ")
         tissue_type = None
+    print(organ_dict)
     uuids_list, hubmap_ids_list = get_uuids(organ_dict, tissue_type)
     uuids_df = pd.DataFrame()
     uuids_df["uuid"] = pd.Series(uuids_list, dtype=str)
