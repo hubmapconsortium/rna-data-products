@@ -85,7 +85,11 @@ def main(tissue_type: str):
     uuids_df = pd.DataFrame()
     uuids_df["uuid"] = pd.Series(uuids_list, dtype=str)
     uuids_df["hubmap_id"] = pd.Series(hubmap_ids_list, dtype=str)
-    output_file_name = f"{tissue_type.lower()}.tsv" if tissue_type else "rna.tsv"
+    key_for_tissue = [key for key, value in organ_dict.items() if value == tissue_type]
+    if key_for_tissue:
+            output_file_name = f"{key_for_tissue[0].lower()}.tsv"
+    else:
+        output_file_name = "rna.tsv"
     print(uuids_df)
     uuids_df.to_csv(output_file_name, sep="\t")
 
