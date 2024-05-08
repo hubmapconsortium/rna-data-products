@@ -10,7 +10,7 @@ import boto3
 def upload_file_to_s3(path_to_file, tissue, boto_session):
     remote_path = f"s3://hubmap-data-products/{tissue}/{path_to_file.name}" if tissue else f"s3://hubmap-data-products/rna/{path_to_file.name}"
     with open(path_to_file, "rb") as local_f:
-        wr.s3.upload(local_file=local_f, path=remote_path, boto3_session=boto_session)
+        wr.s3.upload(local_file=local_f, path=remote_path, boto3_session=boto_session, s3_additional_kwargs={"expected-size": 1000000000000})
 
 
 def upload_files_to_s3(paths_to_files, tissue, access_key_id, secret_access_key):
