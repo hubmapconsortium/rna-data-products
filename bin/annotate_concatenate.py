@@ -183,7 +183,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
-    file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory)>1)]
+    file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
     print("Annotating objects")
     adatas = [
         annotate_file(file_pair[0], file_pair[1], tissue, uuids_df)
