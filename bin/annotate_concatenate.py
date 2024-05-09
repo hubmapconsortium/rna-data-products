@@ -65,6 +65,8 @@ def find_file_pairs(directory):
     unfiltered_patterns = ["out.h5ad", "expr.h5ad"]
     filtered_file = find_files(directory, filtered_patterns)
     unfiltered_file = find_files(directory, unfiltered_patterns)
+    if filtered_file is None or unfiltered_file is None:
+        return None, None
     return filtered_file, unfiltered_file
 
 
@@ -182,13 +184,17 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     )
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
-    # Load files
-    file_pairs = [find_file_pairs(directory) for directory in directories]
+    # Load files only if they exist
+    file_pairs = [(find_file_pairs(directory), directory) for directory in directories]
+    file_pairs = [(filtered, unfiltered, directory) for filtered, unfiltered, directory in file_pairs if filtered and unfiltered]
+    
     print("Annotating objects")
-    adatas = [
-        annotate_file(file_pair[0], file_pair[1], tissue, uuids_df)
-        for file_pair in file_pairs
-    ]
+    adatas = []
+    for filtered, unfiltered, _ in file_pairs:
+        if filtered is None or unfiltered is None:
+            continue
+        adatas.append(annotate_file(filtered, unfiltered, tissue, uuids_df))
+    
     annotation_metadata = {
         adata.obs.dataset.iloc[0]: adata.uns["annotation_metadata"] for adata in adatas
     }
