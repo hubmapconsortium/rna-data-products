@@ -41,9 +41,6 @@ outputs:
   umap_png:
     outputSource: annotate-concatenate/umap_png
     type: File
-  finished_text:
-    outputSource: upload-to-s3/finished_text
-    type: File
 
 steps:
 

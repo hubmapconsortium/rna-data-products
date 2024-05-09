@@ -5,7 +5,7 @@ label: Uploads the annotated and concatenated h5ad files and the umap png
 hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products
-baseCommand: /opt/upload_to_s3.py
+baseCommand: /opt/upload_to_s3.sh
 
 inputs:
     raw_h5ad_file:
