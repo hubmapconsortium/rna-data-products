@@ -1,3 +1,4 @@
+#!/bin/bash
 set_access_keys() {
     local access_key_id=$1
     local secret_access_key_id=$2
