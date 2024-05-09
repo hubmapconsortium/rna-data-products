@@ -185,12 +185,10 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files only if they exist
-    file_pairs = [(find_file_pairs(directory), directory) for directory in directories]
-    file_pairs = [(filtered, unfiltered, directory) for filtered, unfiltered, directory in file_pairs if filtered and unfiltered]
-    
+    file_pairs = [(find_file_pairs(directory), directory) for directory in directories]    
     print("Annotating objects")
     adatas = []
-    for filtered, unfiltered, _ in file_pairs:
+    for filtered, unfiltered in file_pairs:
         if filtered is None or unfiltered is None:
             continue
         adatas.append(annotate_file(filtered, unfiltered, tissue, uuids_df))
