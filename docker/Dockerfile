@@ -22,6 +22,7 @@ RUN apt-get update \
     python3-dev \
     python3-pip \
     zlib1g-dev \
+    awscli \
  && rm -rf /var/cache/apt/*
 
 ## Python packages
@@ -34,5 +35,7 @@ RUN mkdir /root/.ssh
 COPY bin /opt
 COPY data /opt/data
 COPY utils.py /opt
+
+RUN chmod -R +x /opt
 
 WORKDIR /opt
