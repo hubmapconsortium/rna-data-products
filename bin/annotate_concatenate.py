@@ -141,7 +141,6 @@ def annotate_file(
     )
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
-    print("azimuth labels: ", unfiltered_copy.obs["azimuth_label"])
     return unfiltered_copy
 
 
@@ -211,7 +210,6 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     if "predicted_label" in adata.obs_keys():
         adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.var = saved_var
-    print("adata object: ", adata)
     print(f"Writing {raw_output_file_name}")
     adata.write(raw_output_file_name)
 
