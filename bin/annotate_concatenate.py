@@ -120,7 +120,8 @@ def annotate_file(
                 index=unfiltered_copy.obs.index, dtype=np.float64
             )
             unfiltered_copy.obs["prediction_score"] = unfiltered_copy.obs["prediction_score"].astype(float)
-    if annotation_fields in unfiltered_copy.obs_keys():
+
+    if any(field in unfiltered_copy.obs_keys() for field in annotation_fields):
         unfiltered_copy.obs["dataset_leiden"] = pd.Series(
             index=unfiltered_copy.obs.index, dtype=str
         )
@@ -131,6 +132,7 @@ def annotate_file(
             for k in dataset_clusters_and_cell_types:
                 unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
 
+
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
     ]
@@ -139,6 +141,7 @@ def annotate_file(
     )
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
+    print("azimuth labels: ", unfiltered_copy.obs["azimuth_label"])
     return unfiltered_copy
 
 
