@@ -103,27 +103,33 @@ def annotate_file(
     unfiltered_copy.obs["hubmap_id"] = hubmap_id
     unfiltered_copy.obs["organ"] = tissue_type
     unfiltered_copy.obs["modality"] = "rna"
-    unfiltered_copy.obs["dataset_leiden"] = pd.Series(
-        index=unfiltered_copy.obs.index, dtype=str
-    )
     unfiltered_copy.uns["annotation_metadata"] = (
         filtered_adata.uns["annotation_metadata"]
         if "annotation_metadata" in filtered_adata.uns.keys()
         else {"is_annotated": False}
     )
+    
+    # Only add annotation fields if they exist in the filtered AnnData object
     for field in annotation_fields:
-        unfiltered_copy.obs[field] = pd.Series(
+        if field in filtered_adata.obs_keys():
+            unfiltered_copy.obs[field] = pd.Series(
+                index=unfiltered_copy.obs.index, dtype=str
+            )
+    if "prediction_score" in filtered_adata.obs_keys():
+            unfiltered_copy.obs["prediction_score"] = pd.Series(
+                index=unfiltered_copy.obs.index, dtype=np.float64
+            )
+            unfiltered_copy.obs["prediction_score"] = unfiltered_copy.obs["prediction_score"].astype(float)
+    if annotation_fields in unfiltered_copy.obs_keys():
+        unfiltered_copy.obs["dataset_leiden"] = pd.Series(
             index=unfiltered_copy.obs.index, dtype=str
         )
-    unfiltered_copy.obs["prediction_score"] = pd.Series(
-        index=unfiltered_copy.obs.index, dtype=np.float64
-    )
-    for barcode in unfiltered_copy.obs.index:
-        dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(
-            barcode, filtered_adata, data_set_dir
-        )
-        for k in dataset_clusters_and_cell_types:
-            unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
+        for barcode in unfiltered_copy.obs.index:
+            dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(
+                barcode, filtered_adata, data_set_dir
+            )
+            for k in dataset_clusters_and_cell_types:
+                unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
 
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
@@ -134,6 +140,7 @@ def annotate_file(
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
+
 
 
 def read_gene_mapping() -> Dict[str, str]:
@@ -195,11 +202,13 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     saved_var = adatas[0].var
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
-    adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.uns["annotation_metadata"] = annotation_metadata
     adata.uns["creation_date_time"] = str(datetime.now())
     adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
+    if "predicted_label" in adata.obs_keys():
+        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.var = saved_var
+    print("adata object: ", adata)
     print(f"Writing {raw_output_file_name}")
     adata.write(raw_output_file_name)
 
@@ -226,18 +235,20 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     # leiden clustering
     sc.tl.leiden(adata)
 
-    non_na_values = adata.obs.predicted_label.dropna()
-    counts_dict = non_na_values.value_counts().to_dict()
-    keep_cell_types = [
-        cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
-    ]
-    adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
-    # Filter out cell types with only one cell for this analysis
-    sc.tl.rank_genes_groups(adata_filter, "predicted_label")
-    adata.uns = adata_filter.uns
-    adata.uns["cell_type_counts"] = (
-        adata.obs["predicted_label"].value_counts().to_dict()
-    )
+    if "predicted_label" in adata.obs_keys():
+
+        non_na_values = adata.obs.predicted_label.dropna()
+        counts_dict = non_na_values.value_counts().to_dict()
+        keep_cell_types = [
+            cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
+        ]
+        adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
+        # Filter out cell types with only one cell for this analysis
+        sc.tl.rank_genes_groups(adata_filter, "predicted_label")
+        adata.uns = adata_filter.uns
+    
+    if "predicted_label" in adata.obs_keys():
+        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
 
     sc.pl.umap(
         adata, color="leiden", show=False, save=f"{tissue}.png" if tissue else "rna.png"
