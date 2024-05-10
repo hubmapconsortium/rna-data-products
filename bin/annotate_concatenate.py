@@ -139,6 +139,7 @@ def annotate_file(
     )
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
+    print("azimuth labels: ", unfiltered_copy.obs["azimuth_label"])
     return unfiltered_copy
 
 
