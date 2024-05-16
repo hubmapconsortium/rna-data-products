@@ -10,7 +10,7 @@ upload_file_to_s3() {
     local local_file=$1
     local remote_path=$2
     file_size=$(stat -c %s "$local_file")
-    aws s3 cp "$local_file" "$remote_path" --expected-size "$file_size" --acl public-read
+    aws s3 cp "$local_file" "$remote_path" --expected-size "$file_size"
 }
 upload_files_to_s3(){
     local raw_h5ad=$1
