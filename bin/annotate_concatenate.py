@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
-import scanpy as sc
 import scipy.sparse
 import yaml
 
@@ -213,49 +212,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     print(f"Writing {raw_output_file_name}")
     adata.write(raw_output_file_name)
 
-    print("Processing data product")
-    adata.var_names_make_unique()
-    adata.obs_names_make_unique()
-
-    sc.pp.filter_cells(adata, min_genes=200)
-    sc.pp.filter_genes(adata, min_cells=3)
-
-    adata.obs["n_counts"] = adata.X.sum(axis=1)
-
-    sc.pp.normalize_total(adata, target_sum=1e4)
-    sc.pp.log1p(adata)
-    adata.layers["unscaled"] = adata.X.copy()
-    #    sc.pp.combat(adata, "dataset")
-    sc.pp.scale(adata, max_value=10)
-
-    sc.pp.pca(adata, n_comps=50)
-    sc.pp.neighbors(adata, n_neighbors=50, n_pcs=50)
-
-    sc.tl.umap(adata)
-
-    # leiden clustering
-    sc.tl.leiden(adata)
-
-    if "predicted_label" in adata.obs_keys():
-
-        non_na_values = adata.obs.predicted_label.dropna()
-        counts_dict = non_na_values.value_counts().to_dict()
-        keep_cell_types = [
-            cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
-        ]
-        adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
-        # Filter out cell types with only one cell for this analysis
-        sc.tl.rank_genes_groups(adata_filter, "predicted_label")
-        adata.uns = adata_filter.uns
     
-    if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
-
-    sc.pl.umap(
-        adata, color="leiden", show=False, save=f"{tissue}.png" if tissue else "rna.png"
-    )
-    print(f"Writing {processed_output_file_name}")
-    adata.write(processed_output_file_name)
 
 
 if __name__ == "__main__":

@@ -33,13 +33,13 @@ inputs:
 outputs:
 
   raw_h5ad_file:
-    outputSource: annotate-concatenate/raw_h5ad_file
+    outputSource: secondary-analysis/raw_h5ad_file
     type: File
   processed_h5ad_file:
-    outputSource: annotate-concatenate/processed_h5ad_file
+    outputSource: secondary-analysis/processed_h5ad_file
     type: File
   umap_png:
-    outputSource: annotate-concatenate/umap_png
+    outputSource: secondary-analysis/umap_png
     type: File
 
 steps:
@@ -57,20 +57,45 @@ steps:
 
     out:
       - raw_h5ad_file
-      - processed_h5ad_file
-      - umap_png
-
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
+  
+  - id: azimuth-annotate
+    in: 
+      - id: raw_h5ad_file
+        source: annotate-concatenate/raw_h5ad_file
+      - id: tissue:
+        source: tissue
+    
+    out:
+      - annotations_csv
+    run: steps/azimuth-annotate
+    label: "Runs azimuth on the file created in the previous step"
+
+  - id: secondary-analysis
+    in:
+      - id: raw_h5ad_file
+        source: annotate-concatenate/raw_h5ad_file
+      - id: annotated_csv
+        source: azimuth-annotate/annotations_csv
+      - id: tissue
+        source: tissue
+    
+    out:
+      - raw_h5ad_file
+      - processed_h5ad_file
+      - umap_png
+    run: steps/secondary-analysis.cwl
+    label: "Runs secondary anaylsis on annotated and concatenated data"
 
   - id: upload-to-s3
     in:
       - id: raw_h5ad_file
-        source: annotate-concatenate/raw_h5ad_file
+        source: secondary-analysis/annotated_raw_h5ad_file
       - id: processed_h5ad_file
-        source: annotate-concatenate/processed_h5ad_file
+        source: secondary-analysis/processed_h5ad_file
       - id: umap_png
-        source: annotate-concatenate/umap_png
+        source: secondary-analysis/umap_png
       - id: tissue
         source: tissue
       - id: access_key_id
