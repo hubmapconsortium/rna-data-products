@@ -4,7 +4,7 @@ label: Annotates each h5ad file with dataset and tissue type, then concatenates
 
 hints:
   DockerRequirement:
-    dockerPull: hubmap/rna-data-products
+    dockerPull: hubmap/rna-data-products-python
 baseCommand: /opt/annotate_concatenate.py
 
 inputs:
@@ -33,20 +33,14 @@ inputs:
       position: 4
 
 outputs:
+  raw_h5ad_files:
+    type: File[]
+    outputBinding:
+      glob: "*_raw_*.h5ad"
+    doc: h5ad files containing raw expression data
+
   raw_h5ad_file:
     type: File
     outputBinding:
       glob: "*_raw.h5ad"
     doc: h5ad file containing raw expression data
-
-  processed_h5ad_file:
-    type: File
-    outputBinding:
-      glob: "*_processed.h5ad"
-    doc: h5ad file containing processed expression data
-  
-  umap_png:
-    type: File
-    outputBinding:
-      glob: "*/*.png"
-    doc: leiden cluster umap png
