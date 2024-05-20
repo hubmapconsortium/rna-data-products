@@ -11,15 +11,21 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 
+
+def add_azimuth_annotations(h5ad, csv):
+    h5ad.obs = pd.merge(h5ad.obs, csv, "outer")
+    return h5ad
+
+
 def main(raw_h5ad_file, annotated_csv: None, tissue):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
-    # TODO: merge annotated csv with raw_h5ad_file
     adata = anndata.read(raw_h5ad_file)
-    annotations = pd.read_csv(annotated_csv)
-    adata.obs = pd.merge(raw_h5ad_file.obs, annotations, "outer")
+    if annotated_csv:
+        annotations = pd.read_csv(annotated_csv)
+        adata = add_azimuth_annotations(adata, annotations)
     print("Writing raw file with Azimuth annotations")
     adata.write(raw_output_file_name)    
     print("Processing data product")
