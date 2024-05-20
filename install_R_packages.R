@@ -6,7 +6,8 @@ c(
 )
 
 install.packages("BiocManager", repos = "https://cloud.r-project.org")
-# bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", )
+# bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", "TFBSTools", "S4Arrays",
+#                 "SparseArray", "DelayedArray", "")
 # tryCatch({
 #     BiocManager::install("DirichletMultinomial")
 # })
@@ -42,7 +43,7 @@ tryCatch({
 )
 
 tryCatch({
-    devtools::install_github("satijalab/azimuth", "seurat5")
+    devtools::install_github("satijalab/azimuth", "master")
 
 },
     error = function(e) {
