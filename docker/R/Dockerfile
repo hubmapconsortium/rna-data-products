@@ -53,7 +53,7 @@ RUN ./configure \
  && make install \
  && rm -rf /opt/htslib-${HTSLIB_VERSION} /opt/htslib-${HTSLIB_VERSION}.tar.bz2
 
- COPY install_R_packages.R /opt
+COPY install_R_packages.R /opt
 
 RUN Rscript /opt/install_R_packages.R \
  && rm /opt/install_R_packages.R
