@@ -47,11 +47,6 @@ RUN wget https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/
 WORKDIR htslib-${HTSLIB_VERSION}
 
 WORKDIR /opt
-RUN wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.annotation.gff3.gz
-RUN ./configure \
- && make \
- && make install \
- && rm -rf /opt/htslib-${HTSLIB_VERSION} /opt/htslib-${HTSLIB_VERSION}.tar.bz2
 
 COPY install_R_packages.R /opt
 
