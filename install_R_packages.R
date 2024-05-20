@@ -5,6 +5,10 @@ c(
  Ncpus=6
 )
 
+install.packages("tidyverse")
+
+install.packages("devtools")
+
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 BiocManager::install(version = "3.14", ask=FALSE)
 
