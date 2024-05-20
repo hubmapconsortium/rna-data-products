@@ -5,6 +5,19 @@ c(
  Ncpus=6
 )
 
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(version = "3.14", ask=FALSE)
+
+tryCatch({
+    install.packages("magick", version = "2.7.3")
+},
+    error = function(e) {
+    message("Error installing magick")
+    message(e$message)
+    quit("no", -1)
+  }
+)
+
 tryCatch({
     devtools::install_github("satijalab/seurat", "seurat5")
 },
