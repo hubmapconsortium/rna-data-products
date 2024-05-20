@@ -21,8 +21,39 @@ RUN apt-get update \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
 WORKDIR /opt
+ENV SAMTOOLS_VERSION=1.13
+RUN wget https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+ && tar -xf samtools-${SAMTOOLS_VERSION}.tar.bz2
+WORKDIR samtools-${SAMTOOLS_VERSION}
+RUN ./configure \
+ && make \
+ && make install \
+ && rm -rf /opt/samtools-${SAMTOOLS_VERSION} /opt/samtools-${SAMTOOLS_VERSION}.tar.bz2
 
-COPY install_R_packages.R /opt
+WORKDIR /opt
+ENV BEDTOOLS_VERSION=2.29.1
+# Install bedtools
+RUN wget -O bedtools-${BEDTOOLS_VERSION}.tar.gz https://github.com/arq5x/bedtools2/releases/download/v${BEDTOOLS_VERSION}/bedtools-${BEDTOOLS_VERSION}.tar.gz \
+ && tar -xf bedtools-${BEDTOOLS_VERSION}.tar.gz
+WORKDIR bedtools2
+RUN make \
+ && make install \
+ && rm -rf /opt/bedtools-${BEDTOOLS_VERSION}.tar.gz /opt/bedtools2
+ 
+WORKDIR /opt
+ENV HTSLIB_VERSION=1.13
+RUN wget https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/htslib-${HTSLIB_VERSION}.tar.bz2 \
+ && tar -xf htslib-${HTSLIB_VERSION}.tar.bz2
+WORKDIR htslib-${HTSLIB_VERSION}
+
+WORKDIR /opt
+RUN wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.annotation.gff3.gz
+RUN ./configure \
+ && make \
+ && make install \
+ && rm -rf /opt/htslib-${HTSLIB_VERSION} /opt/htslib-${HTSLIB_VERSION}.tar.bz2
+
+ COPY install_R_packages.R /opt
 
 RUN Rscript /opt/install_R_packages.R \
  && rm /opt/install_R_packages.R
