@@ -1,1 +1,2 @@
-hubmap/rna-data-products	docker/Dockerfile	base_directory_build
+hubmap/rna-data-products-python	docker/python/Dockerfile	base_directory_build
+hubmap/rna-data-products-r docker/R/Dockerfile base_directory_build
