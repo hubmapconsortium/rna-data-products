@@ -4,7 +4,7 @@ label: Perform secondary analysis on raw data product
 
 hints:
   DockerRequirement:
-    dockerPull: hubmap/rna-data-products
+    dockerPull: hubmap/rna-data-products-python
 baseCommand: /opt/azimuth.R
 
 inputs: 

@@ -4,7 +4,7 @@ label: Adds azimuth annotations to raw data product
 
 hints:
   DockerRequirement:
-    dockerPull: hubmap/rna-data-products #TODO: make R docker image
+    dockerPull: hubmap/rna-data-products-r 
 baseCommand: /opt/azimuth.R
 
 inputs:
