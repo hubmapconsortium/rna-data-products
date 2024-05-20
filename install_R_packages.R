@@ -8,9 +8,9 @@ c(
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(version = "3.19")
-# bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", "TFBSTools", "S4Arrays",
-#                 "SparseArray", "DelayedArray", "HDF5Array")
-#     BiocManager::install(bio_pkgs)
+bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", "TFBSTools", "S4Arrays",
+                "SparseArray", "DelayedArray", "HDF5Array")
+BiocManager::install(bio_pkgs)
 
 tryCatch({
     install.packages("magick", version = "2.7.3")
