@@ -1,5 +1,4 @@
-FROM --platform=linux/amd64 rocker/r-ver:4.1.0
-
+FROM --platform=linux/amd64 rocker/tidyerse:4.1
 ENV DEBIAN_FRONTEND=non-interactive
 
 RUN apt-get update \
