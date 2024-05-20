@@ -5,12 +5,7 @@ c(
  Ncpus=6
 )
 
-install.packages("tidyverse")
-
-install.packages("devtools")
-
-if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install(version = "3.14", ask=FALSE)
+install.packages("BiocManager", repos = "https://cloud.r-project.org")
 
 tryCatch({
     install.packages("magick", version = "2.7.3")
