@@ -9,7 +9,7 @@ if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(version = "3.19")
 bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", "TFBSTools", "S4Arrays",
-                "SparseArray", "DelayedArray", "HDF5Array")
+                "SparseArray", "DelayedArray", "HDF5Array", "BSgenome.Hsapiens.UCSC.hg38")
 BiocManager::install(bio_pkgs)
 
 tryCatch({
