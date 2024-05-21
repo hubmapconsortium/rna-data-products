@@ -10,6 +10,7 @@ RUN apt-get update \
     libgeos-dev \
     libglpk-dev \
     libgsl-dev \
+    libhdf5-dev \
     libmagick++-dev \
     libxml2-dev \
     libssl-dev \
