@@ -21,6 +21,8 @@ RUN apt-get update \
 # Make sure a 'python' command is available so anndata will install
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
+RUN pip install anndata==0.7.6
+
 WORKDIR /opt
 ENV SAMTOOLS_VERSION=1.13
 RUN wget https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
