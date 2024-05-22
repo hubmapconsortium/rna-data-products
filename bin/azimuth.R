@@ -15,7 +15,7 @@ if (length(args) != 2) {
 adata_object <- args[1]
 tissue <- args[2]
 
-print("Working directory: ", getwd())
+getwd()
 
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   if (tissue %in% c("RK", "LK")) {
