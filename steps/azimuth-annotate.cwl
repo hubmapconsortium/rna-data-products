@@ -2,9 +2,15 @@ cwlVersion: v1.0
 class: CommandLineTool
 label: Adds azimuth annotations to raw data product
 
-hints:
+requirements:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-r 
+    dockerOutputDirectory: "/output"
+  NetworkAccess:
+    networkAccess: true
+  InitialWorkDirRequirement:
+    listing:
+      - $(inputs.raw_h5ad_file)
 
 inputs:
     raw_h5ad_file:
