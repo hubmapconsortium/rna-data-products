@@ -6,8 +6,6 @@ requirements:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-r 
     dockerOutputDirectory: "/output"
-  NetworkAccess:
-    networkAccess: true
   InitialWorkDirRequirement:
     listing:
       - $(inputs.raw_h5ad_file)
