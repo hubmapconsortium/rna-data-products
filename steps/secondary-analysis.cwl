@@ -27,7 +27,7 @@ inputs:
             position: 2
 
 outputs:
-    raw_h5ad_file:
+    annotated_raw_h5ad_file:
         type: File
         outputBinding:
             glob: "*_raw.h5ad"

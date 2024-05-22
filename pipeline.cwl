@@ -32,8 +32,8 @@ inputs:
 
 outputs:
 
-  raw_h5ad_file:
-    outputSource: secondary-analysis/raw_h5ad_file
+  annotated_raw_h5ad_file:
+    outputSource: secondary-analysis/annotated_raw_h5ad_file
     type: File
   processed_h5ad_file:
     outputSource: secondary-analysis/processed_h5ad_file
@@ -76,13 +76,13 @@ steps:
     in:
       - id: raw_h5ad_file
         source: annotate-concatenate/raw_h5ad_file
-      - id: annotated_csv
+      - id: annotations_csv
         source: azimuth-annotate/annotations_csv
       - id: tissue
         source: tissue
     
     out:
-      - raw_h5ad_file
+      - annotated_raw_h5ad_file
       - processed_h5ad_file
       - umap_png
     run: steps/secondary-analysis.cwl
