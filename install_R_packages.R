@@ -5,13 +5,6 @@ c(
  Ncpus=6
 )
 
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install(version = "3.19")
-bio_pkgs <- c("Biostrings", "BSgenome", "CNEr", "DirichletMultinomial", "GenomeInfoDb", "GenomicRanges", "IRanges", "rtracklayer", "S4Vectors", "XVector", "glmGamPoi", "TFBSTools", "S4Arrays",
-                "SparseArray", "DelayedArray", "HDF5Array", "BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86")
-BiocManager::install(bio_pkgs)
-
 tryCatch({
     install.packages("magick", version = "2.7.3")
 },
@@ -22,36 +15,6 @@ tryCatch({
   }
 )
 
-tryCatch({
-    devtools::install_github("satijalab/seurat", "seurat5")
-},
-    error = function(e) {
-    message("Error installing satijalab/seurat")
-    message(e$message)
-    quit("no", -1)
-    }
-)
-
-tryCatch({
-    devtools::install_github("satijalab/seurat-data", "seurat5")
-},
-    error = function(e) {
-    message("Error installing satijalab/seurat-data")
-    message(e$message)
-    quit("no", -1)
-    }
-)
-
-tryCatch({
-    devtools::install_github("satijalab/azimuth", "master")
-
-},
-    error = function(e) {
-    message("Error installing satijalab/azimuth")
-    message(e$message)
-    quit("no", -1)
-    }
-)
 reqPkg = c("data.table", "Matrix", "hdf5r", "reticulate", "ggplot2", 
            "gridExtra", "glue", "readr", "RColorBrewer", "R.utils", "Seurat")
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]

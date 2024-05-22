@@ -24,32 +24,6 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 RUN pip install anndata==0.7.6
 
 WORKDIR /opt
-ENV SAMTOOLS_VERSION=1.13
-RUN wget https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
- && tar -xf samtools-${SAMTOOLS_VERSION}.tar.bz2
-WORKDIR samtools-${SAMTOOLS_VERSION}
-RUN ./configure \
- && make \
- && make install \
- && rm -rf /opt/samtools-${SAMTOOLS_VERSION} /opt/samtools-${SAMTOOLS_VERSION}.tar.bz2
-
-WORKDIR /opt
-ENV BEDTOOLS_VERSION=2.29.1
-# Install bedtools
-RUN wget -O bedtools-${BEDTOOLS_VERSION}.tar.gz https://github.com/arq5x/bedtools2/releases/download/v${BEDTOOLS_VERSION}/bedtools-${BEDTOOLS_VERSION}.tar.gz \
- && tar -xf bedtools-${BEDTOOLS_VERSION}.tar.gz
-WORKDIR bedtools2
-RUN make \
- && make install \
- && rm -rf /opt/bedtools-${BEDTOOLS_VERSION}.tar.gz /opt/bedtools2
- 
-WORKDIR /opt
-ENV HTSLIB_VERSION=1.13
-RUN wget https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/htslib-${HTSLIB_VERSION}.tar.bz2 \
- && tar -xf htslib-${HTSLIB_VERSION}.tar.bz2
-WORKDIR htslib-${HTSLIB_VERSION}
-
-WORKDIR /opt
 
 COPY install_R_packages.R /opt
 
