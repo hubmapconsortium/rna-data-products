@@ -5,7 +5,6 @@ label: Adds azimuth annotations to raw data product
 hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-r 
-baseCommand: /opt/azimuth.R
 
 inputs:
     raw_h5ad_file:
@@ -24,3 +23,5 @@ outputs:
         type: File?
         outputBinding:
             glob: "*.csv"
+
+baseCommand: [Rscript, /opt/azimuth.R]
