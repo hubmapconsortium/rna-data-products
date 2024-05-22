@@ -9,7 +9,7 @@ requirements:
   InitialWorkDirRequirement:
     listing:
       - $(inputs.raw_h5ad_file)
-      - writable: true
+        writable: true
 
 inputs:
     raw_h5ad_file:
