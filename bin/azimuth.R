@@ -4,8 +4,6 @@ library(Azimuth)
 library(SeuratData)
 library(patchwork)
 library(SeuratDisk)
-library(magick)
-library(R.utils)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2) {
