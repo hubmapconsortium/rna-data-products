@@ -5,16 +5,6 @@ c(
  Ncpus=6
 )
 
-tryCatch({
-    install.packages("magick", version = "2.7.3")
-},
-    error = function(e) {
-    message("Error installing magick")
-    message(e$message)
-    quit("no", -1)
-  }
-)
-
 reqPkg = c("data.table", "Matrix", "hdf5r", "reticulate", "ggplot2", 
            "gridExtra", "glue", "readr", "RColorBrewer", "R.utils", "Seurat")
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]
