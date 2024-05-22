@@ -15,7 +15,7 @@ if (length(args) != 2) {
 adata_object <- args[1]
 tissue <- args[2]
 
-setwd(azimuth_output)
+setwd("azimuth_output")
 
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   if (tissue %in% c("RK", "LK")) {
