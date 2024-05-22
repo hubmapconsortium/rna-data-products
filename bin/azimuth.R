@@ -15,10 +15,10 @@ if (length(args) != 2) {
 raw_h5ad_file <- args[1]
 tissue <- args[2]
 
-wd <- getwd()
-copyDirectory(wd, "azimuth-output")
-file.copy(raw_h5ad_file, "azimuth_output")
-raw_h5ad_path <- sprintf("azimuth_output/%", raw_h5ad_file)
+# wd <- getwd()
+# copyDirectory(wd, "azimuth-output")
+# file.copy(raw_h5ad_file, "azimuth_output")
+# raw_h5ad_path <- sprintf("azimuth_output/%", raw_h5ad_file)
 
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   if (tissue %in% c("RK", "LK")) {
@@ -34,5 +34,5 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   }
 }
 print("Running Azimuth")
-azimuth_object <-RunAzimuth(query=raw_h5ad_path, reference=ref)
+azimuth_object <-RunAzimuth(query=raw_h5ad_file, reference=ref)
 write.csv(azimuth_object@meta.data, "azimuth_results.csv")
