@@ -69,13 +69,14 @@ steps:
     
     out:
       - annotations_csv
+      - raw_h5ad_file
     run: steps/azimuth-annotate
     label: "Runs azimuth on the file created in the previous step"
 
   - id: secondary-analysis
     in:
       - id: raw_h5ad_file
-        source: annotate-concatenate/raw_h5ad_file
+        source: azimuth-annotate/raw_h5ad_file
       - id: annotations_csv
         source: azimuth-annotate/annotations_csv
       - id: tissue
