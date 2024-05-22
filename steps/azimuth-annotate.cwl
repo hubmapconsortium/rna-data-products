@@ -4,8 +4,7 @@ label: Adds azimuth annotations to raw data product
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/rna-data-products-r 
-    dockerOutputDirectory: "/output"
+    dockerPull: hubmap/rna-data-products-azimuth
 
 inputs:
     raw_h5ad_file:
