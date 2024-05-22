@@ -4,6 +4,8 @@ library(Azimuth)
 library(SeuratData)
 library(patchwork)
 library(SeuratDisk)
+library(magick)
+library(R.utils)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2) {
@@ -12,6 +14,8 @@ if (length(args) != 2) {
 }
 adata_object <- args[1]
 tissue <- args[2]
+
+setwd(azimuth_output)
 
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   if (tissue %in% c("RK", "LK")) {
