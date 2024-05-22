@@ -15,7 +15,7 @@ if (length(args) != 2) {
 adata_object <- args[1]
 tissue <- args[2]
 
-getwd()
+wd <- getwd()
 
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   if (tissue %in% c("RK", "LK")) {
@@ -31,5 +31,5 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   }
 }
 print("Running Azimuth")
-azimuth_object <-RunAzimuth(query=adata_object, reference=ref)
+azimuth_object <-RunAzimuth(query=adata_object, reference=ref, lib=wd)
 write.csv(azimuth_object@meta.data, "azimuth_results.csv")
