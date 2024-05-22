@@ -39,7 +39,7 @@ outputs:
             glob: "*_processed.h5ad"
         doc: h5ad file with secondary analysis processing
     
-    umap_png
+    umap_png:
         type: File
         outputBinding:
             glob: *.png

@@ -20,7 +20,7 @@ inputs:
             position: 1
 
 outputs: 
-    annotations_csv
-        type: File
+    annotations_csv:
+        type: File?
         outputBinding:
             glob: "*.csv"
