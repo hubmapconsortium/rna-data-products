@@ -14,7 +14,7 @@ inputs:
         inputBinding:
             position: 0
     tissue:
-        type: str?
+        type: string?
         doc: tissue type
         inputBinding:
             position: 1
