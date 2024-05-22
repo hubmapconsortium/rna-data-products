@@ -21,6 +21,6 @@ inputs:
 
 outputs: 
     annotations_csv
-        type: File?
+        type: File
         outputBinding:
             glob: "*.csv"
