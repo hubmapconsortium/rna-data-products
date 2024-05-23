@@ -49,6 +49,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   # Load the query object for mapping
   # Change the file path based on where the query file is located on your system.
   query <- LoadFileInput(path = raw_h5ad_file)
+  cat("Query object dimensions: ", dim(query), "\n")
   query <- ConvertGeneNames(
     object = query,
     reference.names = rownames(x = reference$map),
