@@ -17,7 +17,7 @@ def add_azimuth_annotations(h5ad, csv):
     return h5ad
 
 
-def main(raw_h5ad_file, annotated_csv: None, tissue):
+def main(raw_h5ad_file, annotated_csv: None, tissue: None, metadata_json):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
@@ -80,7 +80,8 @@ if __name__ == "__main__":
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("annotated_csv", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
+    p.add_argument("metadata_json", type=Path)
 
     args = p.parse_args()
 
-    main(args.raw_h5ad_file, args.annotated_csv, args.tissue)
+    main(args.raw_h5ad_file, args.annotated_csv, args.tissue, args.metadata_json)

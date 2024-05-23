@@ -23,8 +23,14 @@ inputs:
     tissue:
         type: string?
         doc: optional tissue type
-        inputBinding
+        inputBinding:
             position: 2
+    
+    metadata_json:
+        type: File
+        doc: azimuth metadata_json
+        inputBinding:
+            position: 3
 
 outputs:
     annotated_raw_h5ad_file:

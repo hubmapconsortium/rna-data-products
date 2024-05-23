@@ -70,6 +70,7 @@ steps:
     out:
       - annotations_csv
       - raw_h5ad_file
+      - metadata_json
     run: steps/azimuth-annotate
     label: "Runs azimuth on the file created in the previous step"
 
@@ -81,6 +82,8 @@ steps:
         source: azimuth-annotate/annotations_csv
       - id: tissue
         source: tissue
+      - id: metadata_json
+        source: azimuth-annotate/metadata_json
     
     out:
       - annotated_raw_h5ad_file
