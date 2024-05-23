@@ -111,7 +111,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   # The imputed assay is named "impADT" if computed
 
   refdata <- lapply(X = annotation.columns, function(x) {
-    reference$map[[x. drop=FALSE]]
+    reference$map[[x, drop = FALSE]]
   })
   names(x = refdata) <- annotation.columns
 
