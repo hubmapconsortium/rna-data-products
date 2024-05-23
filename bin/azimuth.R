@@ -37,7 +37,6 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   max.dims <- as.double(length(slot(reference$map, "reductions")$refDR))
   meta.data <- names(slot(reference$map, "meta.data"))
   annotation.columns <- c()
-  cat("Reference max dims: ", max.dims)
   if (reference.name %in% c("lung")) {
     annotation.columns <- c("ann_level_1", "ann_level_2", "ann_level_3", "ann_level_4", "ann_level_5", "ann_finest_level")
   } else {
@@ -50,6 +49,8 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   # Change the file path based on where the query file is located on your system.
   query <- LoadFileInput(path = raw_h5ad_file)
   cat("Query object dimensions: ", dim(query), "\n")
+  raw_h5ad <- read_h5ad(filename = raw_h5ad_file)
+  cat("Raw h5ad object dimensions: ", dim(raw_h5ad). "\n")
   query <- ConvertGeneNames(
     object = query,
     reference.names = rownames(x = reference$map),
