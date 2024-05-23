@@ -45,7 +45,6 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
       annotation.columns <- c(annotation.columns, meta.data[i])
     }
   }
-  cat("Query object dimensions: ", dim(query), "\n")
 
   # Load the query object for mapping
   # Change the file path based on where the query file is located on your system.
@@ -55,7 +54,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     reference.names = rownames(x = reference$map),
     homolog.table = 'https://seurat.nygenome.org/azimuth/references/homologs.rds'
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Calculate nCount_RNA and nFeature_RNA if the query does not
   # contain them already
   if (!all(c("nCount_RNA", "nFeature_RNA") %in% c(colnames(x = query[[]])))) {
@@ -71,7 +70,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
       )
       rm(calcn)
   }
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Calculate percent mitochondrial genes if the query contains genes
   # matching the regular expression "^MT-"
   if (any(grepl(pattern = '^MT-', x = rownames(x = query)))) {
@@ -82,7 +81,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
       assay = "RNA"
     )
   }
-
+  cat("Query object dimensions: ", dim(query), "\n")
   assay <- DefaultAssay(query)
   anchors <- FindTransferAnchors(
     reference = reference$map,
@@ -135,7 +134,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     reductions = "pcaproject",
     reuse.weights.matrix = TRUE
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Calculate the query neighbors in the reference
   # with respect to the integrated embeddings
   query[["query_ref.nn"]] <- FindNeighbors(
