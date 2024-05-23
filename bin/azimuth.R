@@ -45,6 +45,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
       annotation.columns <- c(annotation.columns, meta.data[i])
     }
   }
+  cat("Query object dimensions: ", dim(query), "\n")
 
   # Load the query object for mapping
   # Change the file path based on where the query file is located on your system.
@@ -97,12 +98,13 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     n.trees = 20,
     mapping.score.k = 100
   )
+  cat("Query object dimensions: ", dim(query), "\n")
 
   # Fix for NA values 
   cell_embeddings <- anchors@object.list[[1]][["pcaproject"]]@cell.embeddings
   cell_embeddings[rowSums(is.na(cell_embeddings)) == ncol(cell_embeddings), ] <- 0
   anchors@object.list[[1]][["pcaproject"]]@cell.embeddings <- cell_embeddings
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Transfer cell type labels and impute protein expression
   #
   # Transferred labels are in metadata columns named "predicted.*"
@@ -111,7 +113,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   # The imputed assay is named "impADT" if computed
 
   refdata <- lapply(X = annotation.columns, function(x) {
-    reference$map[[x, drop = FALSE]]
+    reference$map[[x, drop = TRUE]]
   })
   names(x = refdata) <- annotation.columns
 
@@ -124,7 +126,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     n.trees = 20,
     store.weights = TRUE
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Calculate the embeddings of the query data on the reference SPCA
   query <- IntegrateEmbeddings(
     anchorset = anchors,
@@ -142,7 +144,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     return.neighbor = TRUE,
     l2.norm = TRUE
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # The reference used in the app is downsampled compared to the reference on which
   # the UMAP model was computed. This step, using the helper function NNTransform,
   # corrects the Neighbors to account for the downsampling.
@@ -150,23 +152,23 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
     object = query,
     meta.data = reference$map[[]]
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # Project the query to the reference UMAP.
   query[["proj.umap"]] <- RunUMAP(
     object = query[["query_ref.nn"]],
     reduction.model = reference$map[["refUMAP"]],
     reduction.key = 'UMAP_'
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   umap_embeddings <- query[["proj.umap"]]@cell.embeddings
-
+  
   # Calculate mapping score and add to metadata
   query <- AddMetaData(
     object = query,
     metadata = MappingScore(anchors = anchors, ndim = max.dims),
     col.name = "mapping.score"
   )
-
+  cat("Query object dimensions: ", dim(query), "\n")
   # build and save df containing annotations and scores
   # need to gather column names to save based on the names of things which are in the reference
   # we know which columns exist based on which reference is used, thus include the columns and
