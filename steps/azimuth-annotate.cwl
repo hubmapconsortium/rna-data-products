@@ -24,10 +24,6 @@ outputs:
         type: File?
         outputBinding:
             glob: "*.csv"
-    raw_h5ad_file:
-        type: File
-        outputBinding:
-            glob: "*.h5ad"
     metadata_json:
         type: File
         outputBinding:
