@@ -50,7 +50,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   query <- LoadFileInput(path = raw_h5ad_file)
   cat("Query object dimensions: ", dim(query), "\n")
   raw_h5ad <- read_h5ad(filename = raw_h5ad_file)
-  cat("Raw h5ad object dimensions: ", dim(raw_h5ad). "\n")
+  cat("Raw h5ad object dimensions: ", dim(raw_h5ad), "\n")
   query <- ConvertGeneNames(
     object = query,
     reference.names = rownames(x = reference$map),
