@@ -194,7 +194,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
 
   # add reference-guided UMAP to anndata object
   umap.new <- matrix(c(df$V1, df$V2), ncol=2)
-  raw_h5ad$obsm$X_umap_proj <- query[["proj.umap"]]
+  raw_h5ad$obsm$X_umap_proj <- umap.new
 
   # save modified secondary_analysis.h5ad matrix to a new annotated equivalent
   write_h5ad(raw_h5ad, secondary.analysis.path) 
