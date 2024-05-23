@@ -28,7 +28,7 @@ outputs:
         type: File
         outputBinding:
             glob: "*.h5ad"
-    metadata_json
+    metadata_json:
         type: File
         outputBinding:
             glob: "*.json"
