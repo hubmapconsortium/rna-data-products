@@ -186,11 +186,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   df["V1"] <- matrix(query[["proj.umap"]]@cell.embeddings, ncol=2)[,1]
   df["V2"] <- matrix(query[["proj.umap"]]@cell.embeddings, ncol=2)[,2]
 
-  # load secondary analysis matrix as anndata object
-  raw_h5ad <- read_h5ad(filename = raw_h5ad_file)
-
-  # save modified secondary_analysis.h5ad matrix to a new annotated equivalent
-  write.csv(df, file=annotations.csv.path, row.names=FALSE)
+  write.csv(df, file="annotations.csv", row.names=TRUE)
 
   version.metadata <- list(
     "is_annotated" = TRUE,
@@ -206,7 +202,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
 
 } else {
   # no-op, but still return the unmodified secondary_analysis.h5ad and metadata indicating no annotation occurred
-  write.csv(data.frame(), file=annotations.csv.path, row.names=FALSE)
+  write.csv(data.frame(), file="annotations.csv", row.names=TRUE)
   version.metadata <- list("is_annotated" = FALSE)
   version.metadata.json = toJSON(version.metadata)
   f <- file(version.metadata.path)
