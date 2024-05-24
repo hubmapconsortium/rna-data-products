@@ -14,6 +14,19 @@ import warnings
 import anndata
 import pandas as pd
 
+CELL_MAPPING_DIRECTORIES = [
+    Path(__file__).parent.parent / "data",
+    Path("/opt/data")
+]
+
+
+def get_mapping_files():
+    for directory in CELL_MAPPING_DIRECTORIES:
+        all_data_file = directory / "all_metadata.json"
+        all_labels_file = directory / "all_labels.csv"
+    return all_data_file, all_labels_file
+
+
 def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tissue_type: str):
     # Load version metadata from JSON
     with open(version_metadata, "rb") as f:
@@ -26,7 +39,7 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
     annotations_df = pd.read_csv(annotations_csv)
     annotations_df = annotations_df.set_index('barcodes')
 
-    print(annotations_df.head())
+    all_data_file, all_labels_file = get_mapping_files()
 
     # Check if annotation was performed
     if metadata["is_annotated"]:
@@ -34,7 +47,7 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
 
         if organ in ["lung", "heart", "kidney"]:
             # Load additional metadata
-            with open("/data/all_metadata.json", 'r') as j:
+            with open(all_data_file) as j:
                 all_data = json.loads(j.read())
             organ_metadata = all_data[organ]
 
@@ -58,7 +71,7 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
                 )
 
             # Load mapping data
-            mapping_df = pd.read_csv('/data/all_labels.csv')
+            mapping_df = pd.read_csv(all_labels_file)
             organ_annotation = organ + "_" + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
             mapping_df = mapping_df.loc[mapping_df['Organ_Level'] == organ_annotation]
 
@@ -105,10 +118,10 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
 
 if __name__ == "__main__":
     p = ArgumentParser()
-    p.add_argument("version_metadata", type=Path)
+    p.add_argument("metadata_json", type=Path)
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("annotations_csv", type=Path)
     p.add_argument("tissue", type=str)
     args = p.parse_args()
 
-    main(args.version_metadata, args.raw_h5ad_file, args.annotations_csv, args.tissue)
+    main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.tissue)
