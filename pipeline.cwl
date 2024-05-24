@@ -33,7 +33,7 @@ inputs:
 outputs:
 
   annotated_raw_h5ad_file:
-    outputSource: secondary-analysis/annotated_raw_h5ad_file
+    outputSource: add-azimuth-annotations/annotated_raw_h5ad_file
     type: File
   processed_h5ad_file:
     outputSource: secondary-analysis/processed_h5ad_file
@@ -72,11 +72,23 @@ steps:
       - metadata_json
     run: steps/azimuth-annotate
     label: "Runs azimuth on the file created in the previous step"
-
-  - id: secondary-analysis
+  - id: add-azimuth-annotations
     in:
+      - id: metadata_json
+        source: azimuth-annotate/metadata_json
       - id: raw_h5ad_file
         source: annotate-concatenate/raw_h5ad_file
+      - id: annotations_csv
+        source: azimuth-annotate/annotations_csv
+      -id: tissue
+        source: tissue
+
+    out:
+      - annotated_raw_h5ad_file
+  - id: secondary-analysis
+    in:
+      - id: annotated_raw_h5ad_file
+        source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: annotations_csv
         source: azimuth-annotate/annotations_csv
       - id: tissue
@@ -85,7 +97,6 @@ steps:
         source: azimuth-annotate/metadata_json
     
     out:
-      - annotated_raw_h5ad_file
       - processed_h5ad_file
       - umap_png
     run: steps/secondary-analysis.cwl
@@ -93,8 +104,8 @@ steps:
 
   - id: upload-to-s3
     in:
-      - id: raw_h5ad_file
-        source: secondary-analysis/annotated_raw_h5ad_file
+      - id: annotated_raw_h5ad_file
+        source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: processed_h5ad_file
         source: secondary-analysis/processed_h5ad_file
       - id: umap_png
