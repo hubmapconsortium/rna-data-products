@@ -14,26 +14,26 @@ inputs:
         inputBinding:
             position: 0
     
-    raw_h5ad_file
+    raw_h5ad_file:
         type: File
         doc: raw h5ad file
         inputBinding:
             position: 1
     
-    annotations_csv
+    annotations_csv:
         type: File
         doc: azimuth annotations
         inputBinding:
             position: 2
 
-    tissue
+    tissue:
         type: string?
         doc: two letter code for tissue type
         inputBinding:
             position: 3
 
 outputs:
-    annotated_raw_h5ad_file
+    annotated_raw_h5ad_file:
         type: File
         outputBinding:
             glob: "*_raw.h5ad"
