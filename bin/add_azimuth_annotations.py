@@ -104,6 +104,14 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
                     ad.obs.at[idx, cl_id] = mapped_values[1]
                     ad.obs.at[idx, standardized_label] = mapped_values[2]
                     ad.obs.at[idx, match] = mapped_values[3]
+                    
+            # Ensure columns are properly typed
+            ad.obs[azimuth_label] = ad.obs[azimuth_label].astype(str)
+            ad.obs[azimuth_id] = ad.obs[azimuth_id].astype(str)
+            ad.obs[cl_id] = ad.obs[cl_id].astype(str)
+            ad.obs[standardized_label] = ad.obs[standardized_label].astype(str)
+            ad.obs[match] = ad.obs[match].astype(str)
+            ad.obs[score] = pd.to_numeric(ad.obs[score], errors='coerce')
 
             # Add additional metadata
             metadata["CLID"] = {"version": organ_metadata["versions"]["CL_version"]}
