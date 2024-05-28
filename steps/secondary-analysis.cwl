@@ -8,7 +8,7 @@ hints:
 baseCommand: /opt/azimuth.R
 
 inputs: 
-    raw_h5ad_file:
+    annotated_raw_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:
