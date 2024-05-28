@@ -30,5 +30,5 @@ outputs:
     umap_png:
         type: File
         outputBinding:
-            glob: *.png
+            glob: "*.png"
         doc: umap png
