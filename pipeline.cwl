@@ -64,13 +64,14 @@ steps:
     in: 
       - id: raw_h5ad_file
         source: annotate-concatenate/raw_h5ad_file
-      - id: tissue:
+      - id: tissue
         source: tissue
     
     out:
       - annotations_csv
       - metadata_json
     run: steps/azimuth-annotate
+
     label: "Runs azimuth on the file created in the previous step"
   - id: add-azimuth-annotations
     in:
@@ -85,16 +86,14 @@ steps:
 
     out:
       - annotated_raw_h5ad_file
+    run: steps/add-azimuth-annotations.cwl
+  
   - id: secondary-analysis
     in:
       - id: annotated_raw_h5ad_file
         source: add-azimuth-annotations/annotated_raw_h5ad_file
-      - id: annotations_csv
-        source: azimuth-annotate/annotations_csv
       - id: tissue
         source: tissue
-      - id: metadata_json
-        source: azimuth-annotate/metadata_json
     
     out:
       - processed_h5ad_file
