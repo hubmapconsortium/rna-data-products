@@ -8,37 +8,19 @@ hints:
 baseCommand: /opt/azimuth.R
 
 inputs: 
-    raw_h5ad_file
+    raw_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:
             position: 0
-    
-    annotated_csv
-        type: File
-        doc: csv with azimuth annotations
-        inputBinding:
-            position: 1
 
     tissue:
         type: string?
         doc: optional tissue type
         inputBinding:
-            position: 2
-    
-    metadata_json:
-        type: File
-        doc: azimuth metadata_json
-        inputBinding:
-            position: 3
+            position: 1
 
 outputs:
-    annotated_raw_h5ad_file:
-        type: File
-        outputBinding:
-            glob: "*_raw.h5ad"
-        doc: raw h5ad file with azimuth annotations
-    
     processed_h5ad_file:
         type: File
         outputBinding:

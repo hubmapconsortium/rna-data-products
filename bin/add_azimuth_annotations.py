@@ -27,7 +27,7 @@ def get_mapping_files():
     return all_data_file, all_labels_file
 
 
-def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tissue_type: str):
+def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tissue_type: str=None):
     # Load version metadata from JSON
     with open(version_metadata, "rb") as f:
         metadata = json.load(f)
@@ -40,6 +40,7 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
     annotations_df = annotations_df.set_index('barcodes')
 
     all_data_file, all_labels_file = get_mapping_files()
+    output_file_name = f"{tissue_type}_raw.h5ad" if tissue_type else "rna_raw.h5ad"
 
     # Check if annotation was performed
     if metadata["is_annotated"]:
@@ -104,7 +105,7 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
                     ad.obs.at[idx, cl_id] = mapped_values[1]
                     ad.obs.at[idx, standardized_label] = mapped_values[2]
                     ad.obs.at[idx, match] = mapped_values[3]
-                    
+
             # Ensure columns are properly typed
             ad.obs[azimuth_label] = ad.obs[azimuth_label].astype(str)
             ad.obs[azimuth_id] = ad.obs[azimuth_id].astype(str)
@@ -119,17 +120,18 @@ def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tis
             for i, key in enumerate(organ_metadata["reviewers"]):
                 metadata[f"reviewer{i + 1}"] = key
             metadata["disclaimers"] = {"text": organ_metadata["disclaimer"]}
+            ad.uns["cell_type_counts"] = (ad.obs["predicted_label"].value_counts().to_dict())
 
     # Add metadata to AnnData object and write to file
     ad.uns["annotation_metadata"] = metadata
-    ad.write(f"{tissue_type}_raw.h5ad")
+    ad.write(output_file_name)
 
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("metadata_json", type=Path)
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("annotations_csv", type=Path)
-    p.add_argument("tissue", type=str)
+    p.add_argument("tissue", type=str, nargs="?")
     args = p.parse_args()
 
     main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.tissue)

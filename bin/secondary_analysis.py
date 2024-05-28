@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from os import fspath, walk, listdir
 from pathlib import Path
-from typing import Dict, Tuple
 
 import anndata
 import matplotlib.pyplot as plt
@@ -12,22 +10,13 @@ import pandas as pd
 import scanpy as sc
 
 
-def add_azimuth_annotations(h5ad, csv):
-    h5ad.obs = pd.merge(h5ad.obs, csv, "outer")
-    return h5ad
-
-
-def main(raw_h5ad_file, annotated_csv: None, tissue: None, metadata_json):
-    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
+def main(raw_h5ad_file: Path, tissue: str = None):
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
-    adata = anndata.read(raw_h5ad_file)
-    if annotated_csv:
-        annotations = pd.read_csv(annotated_csv)
-        adata = add_azimuth_annotations(adata, annotations)
-    print("Writing raw file with Azimuth annotations")
-    adata.write(raw_output_file_name)    
+
+    adata = anndata.read_h5ad('raw_h5ad_file')
+
     print("Processing data product")
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
@@ -50,8 +39,6 @@ def main(raw_h5ad_file, annotated_csv: None, tissue: None, metadata_json):
 
     # leiden clustering
     sc.tl.leiden(adata)
-
-    # TODO: deal with predicted label
 
     if "predicted_label" in adata.obs_keys():
 
@@ -78,10 +65,14 @@ def main(raw_h5ad_file, annotated_csv: None, tissue: None, metadata_json):
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
-    p.add_argument("annotated_csv", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
-    p.add_argument("metadata_json", type=Path)
+    p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
 
-    main(args.raw_h5ad_file, args.annotated_csv, args.tissue, args.metadata_json)
+    if args.enable_manhole:
+        import manhole
+
+        manhole.install(activate_on="USR1")
+
+    main(args.raw_h5ad_file, args.tissue)

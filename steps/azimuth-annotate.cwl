@@ -1,6 +1,6 @@
 cwlVersion: v1.0
 class: CommandLineTool
-label: Adds azimuth annotations to raw data product
+label: Generates azimuth annotations
 
 requirements:
   DockerRequirement:
@@ -21,7 +21,7 @@ inputs:
 
 outputs: 
     annotations_csv:
-        type: File?
+        type: File
         outputBinding:
             glob: "*.csv"
     metadata_json:

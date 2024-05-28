@@ -22,16 +22,6 @@ GENE_MAPPING_DIRECTORIES = [
 ]
 
 
-annotation_fields = [
-    "azimuth_label",
-    "azimuth_id",
-    "predicted_CLID",
-    "predicted_label",
-    "cl_match_type",
-    "prediction_score",
-]
-
-
 def get_tissue_type(dataset: str) -> str:
     organ_dict = yaml.load(open("/opt/organ_types.yaml"), Loader=yaml.BaseLoader)
     organ_code = requests.get(
@@ -67,25 +57,6 @@ def find_file_pairs(directory):
     return filtered_file, unfiltered_file
 
 
-def get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, dataset_uuid):
-    annotation_dict = {
-        annotation_field: np.nan for annotation_field in annotation_fields
-    }
-    annotation_dict["dataset_leiden"] = np.nan
-    if barcode not in filtered_adata.obs.index:
-        return annotation_dict
-    else:
-        annotation_dict[
-            "dataset_leiden"
-        ] = f"{dataset_uuid}-{filtered_adata.obs.at[barcode, 'leiden']}"
-        for field in annotation_fields:
-            if field not in filtered_adata.obs_keys():
-                annotation_dict[field] = np.nan
-            else:
-                annotation_dict[field] = filtered_adata.obs.at[barcode, field]
-        return annotation_dict
-
-
 def annotate_file(
     filtered_file: Path, unfiltered_file: Path, tissue_type: str, uuids_df: pd.DataFrame
 ) -> Tuple[anndata.AnnData, anndata.AnnData]:
@@ -108,30 +79,6 @@ def annotate_file(
         else {"is_annotated": False}
     )
     
-    # Only add annotation fields if they exist in the filtered AnnData object
-    for field in annotation_fields:
-        if field in filtered_adata.obs_keys():
-            unfiltered_copy.obs[field] = pd.Series(
-                index=unfiltered_copy.obs.index, dtype=str
-            )
-    if "prediction_score" in filtered_adata.obs_keys():
-            unfiltered_copy.obs["prediction_score"] = pd.Series(
-                index=unfiltered_copy.obs.index, dtype=np.float64
-            )
-            unfiltered_copy.obs["prediction_score"] = unfiltered_copy.obs["prediction_score"].astype(float)
-
-    if any(field in unfiltered_copy.obs_keys() for field in annotation_fields):
-        unfiltered_copy.obs["dataset_leiden"] = pd.Series(
-            index=unfiltered_copy.obs.index, dtype=str
-        )
-        for barcode in unfiltered_copy.obs.index:
-            dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(
-                barcode, filtered_adata, data_set_dir
-            )
-            for k in dataset_clusters_and_cell_types:
-                unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
-
-
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
     ]
@@ -185,9 +132,6 @@ def map_gene_ids(adata):
 
 def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
-    processed_output_file_name = (
-        f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
-    )
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
@@ -206,8 +150,6 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     adata.uns["annotation_metadata"] = annotation_metadata
     adata.uns["creation_date_time"] = str(datetime.now())
     adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
-    if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
     adata.write(raw_output_file_name)
