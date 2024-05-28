@@ -12,6 +12,9 @@ if (length(args) != 2) {
 raw_h5ad_file <- args[1]
 tissue <- args[2]
 
+#needed for large files
+options(future.globals.maxSize = 8000 * 1024^2)
+
 if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   # reference.path points to path within docker image
   if (tissue %in% c("RK", "LK")) {
