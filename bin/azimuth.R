@@ -208,7 +208,7 @@ if (tissue %in% c("RK", "LK", "RL", "LL", "HT")) {
   write.csv(data.frame(), file="annotations.csv", row.names=TRUE)
   version.metadata <- list("is_annotated" = FALSE)
   version.metadata.json = toJSON(version.metadata)
-  f <- file(version.metadata.path)
+  f <- file("version_metadata.json")
   write(version.metadata.json, f)
   close(f)
   # Create dummy annotations file if no annotation performed. Will handle this case in write_metadata.py
