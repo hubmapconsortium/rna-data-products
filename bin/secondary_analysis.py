@@ -15,7 +15,7 @@ def main(raw_h5ad_file: Path, tissue: str = None):
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
 
-    adata = anndata.read_h5ad('raw_h5ad_file')
+    adata = anndata.read_h5ad(raw_h5ad_file)
 
     print("Processing data product")
     adata.var_names_make_unique()
