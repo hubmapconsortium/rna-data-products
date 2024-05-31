@@ -51,13 +51,15 @@ def main(raw_h5ad_file: Path, tissue: str = None):
         # Filter out cell types with only one cell for this analysis
         sc.tl.rank_genes_groups(adata_filter, "predicted_label")
         adata.uns = adata_filter.uns
-    
-    if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
 
-    sc.pl.umap(
-        adata, color="leiden", show=False, save=f"{tissue}.png" if tissue else "rna.png"
-    )
+    if "predicted_label" in adata.obs_keys():
+        adata.uns["cell_type_counts"] = (
+            adata.obs["predicted_label"].value_counts().to_dict()
+        )
+
+    with plt.rc_context():
+        sc.pl.umap(adata, color="leiden", show=False)
+        plt.savefig(f"{tissue}.png" if tissue else "rna.png")
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
 
