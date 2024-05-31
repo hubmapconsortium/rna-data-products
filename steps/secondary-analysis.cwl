@@ -5,7 +5,7 @@ label: Perform secondary analysis on raw data product
 hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-python
-baseCommand: /opt/azimuth.R
+baseCommand: /opt/secondary_analysis.py
 
 inputs: 
     annotated_raw_h5ad_file:
