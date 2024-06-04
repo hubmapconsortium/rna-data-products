@@ -23,6 +23,6 @@ outputs:
   shinyDir:
     type: Directory
     outputBinding:
-      glob: "shinyApps/*"
+      glob: "shinyApps"
 
 baseCommand: [Rscript, /opt/make_shinycell.R]
