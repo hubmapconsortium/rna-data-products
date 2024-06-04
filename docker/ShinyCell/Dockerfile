@@ -30,7 +30,7 @@ COPY install_R_packages.R /opt
 RUN Rscript /opt/install_R_packages.R \
  && rm /opt/install_R_packages.R
 
-COPY bin/azimuth.R /opt
+COPY bin/make_shinycell.R /opt
 RUN chmod -R +x /opt
 
 CMD ["/bin/bash"]
