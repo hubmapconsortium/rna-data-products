@@ -10,7 +10,11 @@ tissue <- args[2]
 
 
 scConf = createConfig(inpFile)
-#dir = sprintf("shinyApps/% s/", tissue)
-dir = "shinyApps/"
+mainDir = "shinyApps"
+subDir = tissue
+shinyDir <- file.path(mainDir, subDir)
+if (!dir.exists(mainDir)) {dir.create(mainDir)}
+if (!dir.exists(shinyDir)) {dir.create(shinyDir)}  
+
 title = sprintf("Shiny Cell h5ad % s", tissue)
-makeShinyApp(inpFile, scConf, shiny.dir = dir, shiny.title = title) 
+makeShinyApp(inpFile, scConf, shiny.dir = shinyDir, shiny.title = title) 
