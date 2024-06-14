@@ -9,6 +9,38 @@ import yaml
 organ_types_yaml_file = "bin/organ_types.yaml"
 
 
+def extract_donor_metadata(metadata):
+    donor_info = {
+        "age": None,
+        "sex": None,
+        "height": None,
+        "weight": None,
+        "bmi": None,
+        "cause_of_death": None,
+        "race": None 
+    }
+
+    for item in metadata.get('organ_donor_data', []):
+        concept = item.get('grouping_concept_preferred_term')
+        value = item.get('data_value')
+        if concept == "Age":
+            donor_info["age"] = value
+        elif concept == "Sex":
+            donor_info["sex"] = item.get('preferred_term')
+        elif concept == "Height":
+            donor_info["height"] = value
+        elif concept == "Weight":
+            donor_info["weight"] = value
+        elif concept == "Body mass index":
+            donor_info["bmi"] = value
+        elif concept == "Cause of death":
+            donor_info["cause_of_death"] = item.get('preferred_term')
+        elif concept == "Race":
+            donor_info["race"] = item.get('preferred_term')
+
+    return donor_info
+
+
 def get_uuids(organ_name_mapping: dict, organ: str = None):
     organ_code_mapping = {organ_name_mapping[key]: key for key in organ_name_mapping}
     if organ == None:
@@ -50,13 +82,19 @@ def get_uuids(organ_name_mapping: dict, organ: str = None):
         data = response.json()
         # Accessing nested dictionaries to retrieve uuid and hubmap_id
         hits = data.get("hits", {}).get("hits", [])
-        uuids = [hit["_source"]["uuid"] for hit in hits]
-        hubmap_ids = [hit["_source"]["hubmap_id"] for hit in hits]
-        data_access_levels = [hit["_source"]["data_access_level"] for hit in hits]
+        uuids = []
+        hubmap_ids = []
+        donor_metadata_list = []
 
-        # Print data_access_level
-        print("Data Access Levels:", data_access_levels)
-        return uuids, hubmap_ids
+        for hit in hits:
+            source = hit["_source"]
+            uuids.append(source["uuid"])
+            hubmap_ids.append(source["hubmap_id"])
+            donor_metadata = source.get("donor", {}).get("metadata", {})
+            donor_metadata_list.append(extract_donor_metadata(donor_metadata))
+
+        return uuids, hubmap_ids, donor_metadata_list
+    
     elif response.status_code == 303:
         print("Response body: ", response.text)
         redirection_url = response.text
@@ -67,11 +105,10 @@ def get_uuids(organ_name_mapping: dict, organ: str = None):
             hits = data.get("hits", {}).get("hits", [])
             uuids = [hit["_source"]["uuid"] for hit in hits]
             hubmap_ids = [hit["_source"]["hubmap_id"] for hit in hits]
-            data_access_levels = [hit["_source"]["data_access_level"] for hit in hits]
             return uuids, hubmap_ids
     else:
         print("Error:", response.status_code)
-        return [], []
+        return [], [], []
 
 
 def main(tissue_type: str):
@@ -81,17 +118,19 @@ def main(tissue_type: str):
     if tissue_type not in organ_dict.values():
         print(f"Tissue {tissue_type} not found ")
         tissue_type = None
-    uuids_list, hubmap_ids_list = get_uuids(organ_dict, tissue_type)
+    uuids_list, hubmap_ids_list, donor_metadata = get_uuids(organ_dict, tissue_type)
     uuids_df = pd.DataFrame()
     uuids_df["uuid"] = pd.Series(uuids_list, dtype=str)
     uuids_df["hubmap_id"] = pd.Series(hubmap_ids_list, dtype=str)
+    donor_metadata_df = pd.DataFrame(donor_metadata)
+    result_df = pd.concat([uuids_df, donor_metadata_df], axis=1)
     key_for_tissue = [key for key, value in organ_dict.items() if value == tissue_type]
     if key_for_tissue:
             output_file_name = f"{key_for_tissue[0].lower()}.tsv"
     else:
         output_file_name = "rna.tsv"
-    print(uuids_df)
-    uuids_df.to_csv(output_file_name, sep="\t")
+    print(result_df)
+    result_df.to_csv(output_file_name, sep="\t")
 
 
 if __name__ == "__main__":

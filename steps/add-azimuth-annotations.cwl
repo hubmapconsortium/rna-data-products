@@ -27,7 +27,6 @@ inputs:
         doc: version metadata
         inputBinding:
             prefix: --metadata_json
-            itemSeparator: " "
             position: 2
     
     annotations_csv:
@@ -35,7 +34,6 @@ inputs:
         doc: azimuth annotations
         inputBinding:
             prefix: --annotations_csv
-            itemSeparator: " "
             position: 3
 
 outputs:
