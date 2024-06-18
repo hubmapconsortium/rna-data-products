@@ -13,23 +13,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
-import scanpy as sc
 import scipy.sparse
 import yaml
 
 GENE_MAPPING_DIRECTORIES = [
     Path(__file__).parent.parent / "data",
     Path("/opt/data"),
-]
-
-
-annotation_fields = [
-    "azimuth_label",
-    "azimuth_id",
-    "predicted_CLID",
-    "predicted_label",
-    "cl_match_type",
-    "prediction_score",
 ]
 
 
@@ -68,25 +57,6 @@ def find_file_pairs(directory):
     return filtered_file, unfiltered_file
 
 
-def get_dataset_cluster_and_cell_type_if_present(barcode, filtered_adata, dataset_uuid):
-    annotation_dict = {
-        annotation_field: np.nan for annotation_field in annotation_fields
-    }
-    annotation_dict["dataset_leiden"] = np.nan
-    if barcode not in filtered_adata.obs.index:
-        return annotation_dict
-    else:
-        annotation_dict[
-            "dataset_leiden"
-        ] = f"{dataset_uuid}-{filtered_adata.obs.at[barcode, 'leiden']}"
-        for field in annotation_fields:
-            if field not in filtered_adata.obs_keys():
-                annotation_dict[field] = np.nan
-            else:
-                annotation_dict[field] = filtered_adata.obs.at[barcode, field]
-        return annotation_dict
-
-
 def annotate_file(
     filtered_file: Path, unfiltered_file: Path, tissue_type: str, uuids_df: pd.DataFrame
 ) -> Tuple[anndata.AnnData, anndata.AnnData]:
@@ -95,6 +65,13 @@ def annotate_file(
     # And the tissue type
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
     hubmap_id = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "hubmap_id"].values[0]
+    age = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "age"].values[0]
+    sex = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "sex"].values[0]
+    height = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "height"].values[0]
+    weight = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "weight"].values[0]
+    bmi = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "bmi"].values[0]
+    cause_of_death = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "cause_of_death"].values[0]
+    race = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "race"].values[0]
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
@@ -103,36 +80,19 @@ def annotate_file(
     unfiltered_copy.obs["hubmap_id"] = hubmap_id
     unfiltered_copy.obs["organ"] = tissue_type
     unfiltered_copy.obs["modality"] = "rna"
+    unfiltered_copy.obs["age"] = age
+    unfiltered_copy.obs["sex"] = sex
+    unfiltered_copy.obs["height"] = height
+    unfiltered_copy.obs["weight"] = weight
+    unfiltered_copy.obs["bmi"] = bmi
+    unfiltered_copy.obs["cause_of_death"] = cause_of_death
+    unfiltered_copy.obs["race"] = race
     unfiltered_copy.uns["annotation_metadata"] = (
         filtered_adata.uns["annotation_metadata"]
         if "annotation_metadata" in filtered_adata.uns.keys()
         else {"is_annotated": False}
     )
     
-    # Only add annotation fields if they exist in the filtered AnnData object
-    for field in annotation_fields:
-        if field in filtered_adata.obs_keys():
-            unfiltered_copy.obs[field] = pd.Series(
-                index=unfiltered_copy.obs.index, dtype=str
-            )
-    if "prediction_score" in filtered_adata.obs_keys():
-            unfiltered_copy.obs["prediction_score"] = pd.Series(
-                index=unfiltered_copy.obs.index, dtype=np.float64
-            )
-            unfiltered_copy.obs["prediction_score"] = unfiltered_copy.obs["prediction_score"].astype(float)
-
-    if any(field in unfiltered_copy.obs_keys() for field in annotation_fields):
-        unfiltered_copy.obs["dataset_leiden"] = pd.Series(
-            index=unfiltered_copy.obs.index, dtype=str
-        )
-        for barcode in unfiltered_copy.obs.index:
-            dataset_clusters_and_cell_types = get_dataset_cluster_and_cell_type_if_present(
-                barcode, filtered_adata, data_set_dir
-            )
-            for k in dataset_clusters_and_cell_types:
-                unfiltered_copy.obs.at[barcode, k] = dataset_clusters_and_cell_types[k]
-
-
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
     ]
@@ -184,11 +144,19 @@ def map_gene_ids(adata):
     return adata
 
 
+def split_and_save(adata, base_file_name, max_cells: int = 30000):
+    num_cells = adata.n_obs
+    num_splits = (num_cells // max_cells) + 1
+    for i in range(num_splits):
+        start_idx = i * max_cells
+        end_idx = min((i + 1) * max_cells, num_cells)
+        adata_sub = adata[start_idx:end_idx].copy()
+        part_file_name = f"{base_file_name}_part_{i+1}.h5ad"
+        adata_sub.write(part_file_name)
+
+
 def main(data_directory: Path, uuids_file: Path, tissue: str = None):
-    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
-    processed_output_file_name = (
-        f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
-    )
+    raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
@@ -207,55 +175,11 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     adata.uns["annotation_metadata"] = annotation_metadata
     adata.uns["creation_date_time"] = str(datetime.now())
     adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
-    if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
-    adata.write(raw_output_file_name)
-
-    print("Processing data product")
-    adata.var_names_make_unique()
-    adata.obs_names_make_unique()
-
-    sc.pp.filter_cells(adata, min_genes=200)
-    sc.pp.filter_genes(adata, min_cells=3)
-
-    adata.obs["n_counts"] = adata.X.sum(axis=1)
-
-    sc.pp.normalize_total(adata, target_sum=1e4)
-    sc.pp.log1p(adata)
-    adata.layers["unscaled"] = adata.X.copy()
-    #    sc.pp.combat(adata, "dataset")
-    sc.pp.scale(adata, max_value=10)
-
-    sc.pp.pca(adata, n_comps=50)
-    sc.pp.neighbors(adata, n_neighbors=50, n_pcs=50)
-
-    sc.tl.umap(adata)
-
-    # leiden clustering
-    sc.tl.leiden(adata)
-
-    if "predicted_label" in adata.obs_keys():
-
-        non_na_values = adata.obs.predicted_label.dropna()
-        counts_dict = non_na_values.value_counts().to_dict()
-        keep_cell_types = [
-            cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
-        ]
-        adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
-        # Filter out cell types with only one cell for this analysis
-        sc.tl.rank_genes_groups(adata_filter, "predicted_label")
-        adata.uns = adata_filter.uns
-    
-    if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
-
-    sc.pl.umap(
-        adata, color="leiden", show=False, save=f"{tissue}.png" if tissue else "rna.png"
-    )
-    print(f"Writing {processed_output_file_name}")
-    adata.write(processed_output_file_name)
+    adata.write(f"{raw_output_file_name}.h5ad")
+    print(f"Splitting and writing {raw_output_file_name} into multiple files")
+    split_and_save(adata, raw_output_file_name)
 
 
 if __name__ == "__main__":

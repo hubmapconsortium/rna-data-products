@@ -4,6 +4,9 @@ class: Workflow
 cwlVersion: v1.0
 label: Pipeline for evaluating differential expression of genes across datasets
 
+requirements:
+  ScatterFeatureRequirement: {}
+
 inputs:
 
   enable_manhole:
@@ -32,14 +35,14 @@ inputs:
 
 outputs:
 
-  raw_h5ad_file:
-    outputSource: annotate-concatenate/raw_h5ad_file
+  annotated_raw_h5ad_file:
+    outputSource: add-azimuth-annotations/annotated_raw_h5ad_file
     type: File
   processed_h5ad_file:
-    outputSource: annotate-concatenate/processed_h5ad_file
+    outputSource: secondary-analysis/processed_h5ad_file
     type: File
   umap_png:
-    outputSource: annotate-concatenate/umap_png
+    outputSource: secondary-analysis/umap_png
     type: File
 
 steps:
@@ -56,21 +59,62 @@ steps:
         source: tissue
 
     out:
+      - raw_h5ad_files
       - raw_h5ad_file
-      - processed_h5ad_file
-      - umap_png
-
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
-
-  - id: upload-to-s3
+  
+  - id: azimuth-annotate
+    scatter: [raw_h5ad_files]
+    scatterMethod: dotproduct
+    in: 
+      - id: raw_h5ad_files
+        source: annotate-concatenate/raw_h5ad_files
+      - id: tissue
+        source: tissue
+    
+    out:
+      - annotations_csv
+      - metadata_json
+    run: steps/azimuth-annotate.cwl
+    label: "Runs azimuth on the file created in the previous step"
+    
+  - id: add-azimuth-annotations
     in:
       - id: raw_h5ad_file
         source: annotate-concatenate/raw_h5ad_file
+      - id: tissue
+        source: tissue            
+      - id: metadata_json
+        source: azimuth-annotate/metadata_json
+      - id: annotations_csv
+        source: azimuth-annotate/annotations_csv
+
+    out:
+      - annotated_raw_h5ad_file
+    run: steps/add-azimuth-annotations.cwl
+    
+  - id: secondary-analysis
+    in:
+      - id: annotated_raw_h5ad_file
+        source: add-azimuth-annotations/annotated_raw_h5ad_file
+      - id: tissue
+        source: tissue
+    
+    out:
+      - processed_h5ad_file
+      - umap_png
+    run: steps/secondary-analysis.cwl
+    label: "Runs secondary anaylsis on annotated and concatenated data"
+
+  - id: upload-to-s3
+    in:
+      - id: annotated_raw_h5ad_file
+        source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: processed_h5ad_file
-        source: annotate-concatenate/processed_h5ad_file
+        source: secondary-analysis/processed_h5ad_file
       - id: umap_png
-        source: annotate-concatenate/umap_png
+        source: secondary-analysis/umap_png
       - id: tissue
         source: tissue
       - id: access_key_id
