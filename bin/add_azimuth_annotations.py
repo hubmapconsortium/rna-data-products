@@ -30,7 +30,7 @@ def read_and_concat_csvs(annotations_csv):
 
 
 def unpack_list(list):
-    list = list[0].split(" ")
+    list = str(list).split(" ")
     return list 
 
 
