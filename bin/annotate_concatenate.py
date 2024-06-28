@@ -194,8 +194,8 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     creation_time = str(datetime.now())
     adata.uns["creation_date_time"] = creation_time
     adata.uns["datasets"] = hbmids_list
-    data_product_uuid = uuid.uuid4()
-    adata.uns["uuid"] = uuid.uuid4()
+    data_product_uuid = str(uuid.uuid4())
+    adata.uns["uuid"] = data_product_uuid
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
     adata.write(f"{raw_output_file_name}.h5ad")
