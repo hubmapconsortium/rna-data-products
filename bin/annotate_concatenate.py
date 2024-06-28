@@ -174,8 +174,8 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids):
 def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
-    uuids_list = uuids_df["uuid"]
-    hbmids_list = uuids_df["hubmap_id"]
+    uuids_list = uuids_df["uuid"].to_list()
+    hbmids_list = uuids_df["hubmap_id"].to_list()
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
