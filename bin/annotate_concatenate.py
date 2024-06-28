@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import requests
 import scipy.sparse
+import uuid
 import yaml
 
 GENE_MAPPING_DIRECTORIES = [
@@ -104,7 +105,6 @@ def annotate_file(
     return unfiltered_copy
 
 
-
 def read_gene_mapping() -> Dict[str, str]:
     """
     Try to find the Ensembl to HUGO symbol mapping, with paths suitable
@@ -155,9 +155,27 @@ def split_and_save(adata, base_file_name, max_cells: int = 30000):
         adata_sub.write(part_file_name)
 
 
+def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids):
+    bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
+    metadata = {
+        "Data Product UUID": data_product_uuid,
+        "Tissue": tissue,
+        "Raw URL": bucket_url + f"{tissue}_raw.h5ad",
+        "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
+        "Creation Time": creation_time,
+        "Dataset UUIDs": uuids,
+        "Dataset HBMIDs": hbmids
+    }
+    print("Writing metadata json")
+    with open(f"{tissue}_metadata.json", "w") as outfile:
+        json.dump(metadata, outfile)
+
+
 def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
+    uuids_list = uuids_df["uuid"]
+    hbmids_list = uuids_df["hubmap_id"]
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
@@ -173,13 +191,17 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
     adata.uns["annotation_metadata"] = annotation_metadata
-    adata.uns["creation_date_time"] = str(datetime.now())
-    adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
+    creation_time = str(datetime.now())
+    adata.uns["creation_date_time"] = creation_time
+    adata.uns["datasets"] = hbmids_list
+    data_product_uuid = uuid.uuid4()
+    adata.uns["uuid"] = uuid.uuid4()
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
     adata.write(f"{raw_output_file_name}.h5ad")
     print(f"Splitting and writing {raw_output_file_name} into multiple files")
     split_and_save(adata, raw_output_file_name)
+    create_json(tissue, data_product_uuid, creation_time, uuids_list, hbmids_list)
 
 
 if __name__ == "__main__":
