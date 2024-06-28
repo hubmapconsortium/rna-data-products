@@ -29,14 +29,17 @@ def read_and_concat_csvs(annotations_csv):
     return annotations
 
 
-def unpack_list(list):
-    list = list[0].split(" ")
-    return list 
+# def unpack_list(list):
+#     list = str(list).split(" ")
+#     print(list)
+#     list[0] = list[0].removeprefix("[")
+#     print(list)
+#     return list 
 
 
 def main(version_metadata, raw_h5ad_file: Path, annotations_csv, tissue_type: str=None):
-    version_metadata = unpack_list(version_metadata)
-    annotations_csv = unpack_list(annotations_csv)
+    # version_metadata = unpack_list(version_metadata)
+    # annotations_csv = unpack_list(annotations_csv)
     ad = anndata.read_h5ad(raw_h5ad_file)
 
     # Load version metadata from JSON
