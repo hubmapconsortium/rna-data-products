@@ -44,6 +44,9 @@ outputs:
   umap_png:
     outputSource: secondary-analysis/umap_png
     type: File
+  data_product_metadata:
+    outputSource: annotate_concatenate.py/data_product_metadata
+    type: File
 
 steps:
 
@@ -61,6 +64,7 @@ steps:
     out:
       - raw_h5ad_files
       - raw_h5ad_file
+      - data_product_metadata
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
   
