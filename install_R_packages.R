@@ -10,12 +10,13 @@ reqPkg = c("data.table", "Matrix", "hdf5r", "reticulate", "ggplot2",
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]
 if(length(newPkg)){install.packages(newPkg)}
 
-# reticulate::py_install("anndata")
-
 reqPkg = c("shiny", "shinyhelper", "data.table", "Matrix", "DT", "hdf5r", 
-           "reticulate", "ggplot2", "gridExtra", "magrittr", "ggdendro")
+           "ggplot2", "gridExtra", "magrittr", "ggdendro", 
+           "here", "rprojroot", "tools")
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]
 if(length(newPkg)){install.packages(newPkg)}
+
+install.packages("devtools", repos = "http://cran.rstudio.com/")
 
 tryCatch({
     devtools::install_github("SGDDNB/ShinyCell")
