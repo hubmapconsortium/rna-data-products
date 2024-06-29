@@ -45,7 +45,7 @@ outputs:
     outputSource: secondary-analysis/umap_png
     type: File
   data_product_metadata:
-    outputSource: annotate_concatenate/data_product_metadata
+    outputSource: annotate-concatenate/data_product_metadata
     type: File
 
 steps:
