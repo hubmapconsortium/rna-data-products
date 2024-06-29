@@ -8,8 +8,16 @@ if (length(args) != 2) {
 inpFile <- args[1]
 tissue <- args[2]
 
-
-scConf = createConfig(inpFile)
+tryCatch({
+  scConf = createConfig(inpFile)
+},
+error = function(e) {
+  reticulate::py_last_error()
+  message("Error creating config")
+  message(e$message)
+  quit("no", -1)
+}
+)
 mainDir = "shinyApps"
 subDir = tissue
 shinyDir <- file.path(mainDir, subDir)
