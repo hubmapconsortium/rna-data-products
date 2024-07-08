@@ -16,6 +16,7 @@ def main(raw_h5ad_file: Path, tissue: str = None):
     )
 
     adata = anndata.read_h5ad(raw_h5ad_file)
+    uuid = str(adata.uns["uuid"])
     print("Processing data product")
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
@@ -57,7 +58,7 @@ def main(raw_h5ad_file: Path, tissue: str = None):
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
-        plt.savefig(f"{tissue}.png" if tissue else "rna.png")
+        plt.savefig(f"{uuid}.png" if tissue else "rna.png")
 
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)

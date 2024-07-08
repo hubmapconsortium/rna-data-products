@@ -32,6 +32,10 @@ inputs:
   secret_access_key: 
     label: "AWS secret access key"
     type: string
+  
+  ssh_key:
+    label: "SSH key for the main user of the data products VM"
+    type: File
 
 outputs:
 
@@ -119,15 +123,19 @@ steps:
         source: secondary-analysis/processed_h5ad_file
       - id: umap_png
         source: secondary-analysis/umap_png
+      - id: data_product_metadata
+        source: annotate-concatenate/data_product_metadata
       - id: tissue
         source: tissue
       - id: access_key_id
         source: access_key_id
       - id: secret_access_key
         source: secret_access_key
+      - id: ssh_key
+        source: ssh_key
     
     out:
       - finished_text
     
     run: steps/upload-to-s3.cwl
-    label: "Uploads the pipeline outputs to s3"
+    label: "Uploads the pipeline outputs to s3 and ec2"
