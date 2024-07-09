@@ -49,7 +49,7 @@ outputs:
     outputSource: secondary-analysis/umap_png
     type: File
   data_product_metadata:
-    outputSource: annotate-concatenate/data_product_metadata
+    outputSource: secondary-analysis/data_product_metadata
     type: File
 
 steps:
@@ -97,9 +97,12 @@ steps:
         source: azimuth-annotate/metadata_json
       - id: annotations_csv
         source: azimuth-annotate/annotations_csv
+      - id: data_product_metadata
+        source: annotate-concatenate/data_product_metadata
 
     out:
       - annotated_raw_h5ad_file
+      - data_product_metadata
     run: steps/add-azimuth-annotations.cwl
     
   - id: secondary-analysis
@@ -108,6 +111,8 @@ steps:
         source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: tissue
         source: tissue
+      - id: data_product_metadata
+        source: add-azimuth-annotations/data_product_metadata
     
     out:
       - processed_h5ad_file
@@ -124,7 +129,7 @@ steps:
       - id: umap_png
         source: secondary-analysis/umap_png
       - id: data_product_metadata
-        source: annotate-concatenate/data_product_metadata
+        source: secondary-analysis/data_product_metadata
       - id: tissue
         source: tissue
       - id: access_key_id

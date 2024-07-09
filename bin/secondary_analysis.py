@@ -4,13 +4,23 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import anndata
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scanpy as sc
 
 
-def main(raw_h5ad_file: Path, tissue: str = None):
+def add_cell_counts(data_product_metadata, cell_counts, tissue):
+    with open(data_product_metadata) as json_file:
+        metadata = json.load(json_file)
+    cell_counts_entry = {"Processed Cell Type Counts": cell_counts}
+    metadata = metadata.update(cell_counts_entry)
+    with open(f"{tissue}_metadata.json", "w") as outfile:
+        json.dump(metadata, outfile)
+
+
+def main(raw_h5ad_file: Path, data_product_metadata: Path, tissue: str = None):
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
@@ -54,7 +64,9 @@ def main(raw_h5ad_file: Path, tissue: str = None):
         adata.uns = adata_filter.uns
     
     if "predicted_label" in adata.obs_keys():
-        adata.uns["cell_type_counts"] = (adata.obs["predicted_label"].value_counts().to_dict())
+        cell_type_counts = (adata.obs["predicted_label"].value_counts().to_dict())
+        adata.uns["cell_type_counts"] = cell_type_counts
+        add_cell_counts(data_product_metadata, cell_type_counts, tissue)
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
@@ -68,6 +80,7 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
+    p.add_argument("data_product_metadata", type=Path)
     p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
@@ -77,4 +90,4 @@ if __name__ == "__main__":
 
         manhole.install(activate_on="USR1")
 
-    main(args.raw_h5ad_file, args.tissue)
+    main(args.raw_h5ad_file, args.data_product_metadata, args.tissue)

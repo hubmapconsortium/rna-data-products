@@ -29,7 +29,16 @@ def read_and_concat_csvs(annotations_csv):
     return annotations
 
 
-def main(version_metadata, raw_h5ad_file: Path, annotations_csv, tissue_type: str=None):
+def add_raw_cell_counts(data_product_metadata, raw_cell_counts, tissue):
+    with open(data_product_metadata) as json_file:
+        metadata = json.load(json_file)
+    raw_cell_counts_entry = {"Raw Cell Type Counts": raw_cell_counts}
+    metadata = metadata.update(raw_cell_counts_entry)
+    with open(f"{tissue}_metadata.json", "w") as outfile:
+        json.dump(metadata, outfile)
+
+
+def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_metadata, tissue_type: str=None):
     ad = anndata.read_h5ad(raw_h5ad_file)
 
     # Load version metadata from JSON
@@ -129,7 +138,10 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, tissue_type: st
             metadata["disclaimers"] = {"text": organ_metadata["disclaimer"]}
 
             # Cell type counts
-            ad.uns["cell_type_counts"] = ad.obs["predicted_label"].value_counts().to_dict()
+            cell_type_counts = ad.obs["predicted_label"].value_counts().to_dict()
+            ad.uns["cell_type_counts"] = cell_type_counts
+            add_raw_cell_counts(data_product_metadata, cell_type_counts, tissue_type)
+
     # Add metadata to AnnData object and write to file
     ad.uns["annotation_metadata"] = metadata
     ad.write(output_file_name)
@@ -140,6 +152,7 @@ if __name__ == "__main__":
     p.add_argument("--tissue", type=str, nargs="?")
     p.add_argument("--metadata_json", type=str, nargs="+")
     p.add_argument("--annotations_csv", type=str, nargs="+")
+    p.add_argument("--data_product_metadata", type=str)
     args = p.parse_args()
 
-    main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.tissue)
+    main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.data_product_metadata, args.tissue)

@@ -35,9 +35,21 @@ inputs:
         inputBinding:
             prefix: --annotations_csv
             position: 3
+    
+    data_product_metadata:
+        type: File
+        doc: data product metadata
+        inputBinding:
+            prefix: "--data_product_metadata"
+            position: 4
 
 outputs:
     annotated_raw_h5ad_file:
         type: File
         outputBinding:
             glob: "*_raw.h5ad"
+    
+    data_product_metadata:
+        type: File
+        outputBinding:
+            glob: "*.json"
