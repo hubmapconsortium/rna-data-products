@@ -49,7 +49,7 @@ outputs:
         outputBinding:
             glob: "*_raw.h5ad"
     
-    data_product_metadata:
+    updated_data_product_metadata:
         type: File
         outputBinding:
             glob: "*.json"

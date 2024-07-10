@@ -20,7 +20,7 @@ inputs:
         inputBinding:
             position: 1
     
-    data_product_metadata:
+    updated_data_product_metadata:
         type: File
         doc: data product metadata
         inputBinding: 
@@ -39,7 +39,7 @@ outputs:
             glob: "*.png"
         doc: umap png
     
-    data_product_metadata:
+    final_data_product_metadata:
         type: File
         outputBinding:
             glob: "*.json"
