@@ -26,7 +26,7 @@ inputs:
         inputBinding: 
             position: 2
 
-    data_product_metadata
+    data_product_metadata:
         type: File
         doc: data product metadata json
         inputBinding:
