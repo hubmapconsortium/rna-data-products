@@ -167,7 +167,7 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids):
         "Dataset HBMIDs": hbmids
     }
     print("Writing metadata json")
-    with open(f"{tissue}_metadata.json", "w") as outfile:
+    with open(f"{data_product_uuid}.json", "w") as outfile:
         json.dump(metadata, outfile)
 
 

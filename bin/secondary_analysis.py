@@ -12,12 +12,11 @@ import scanpy as sc
 
 
 def add_cell_counts(data_product_metadata, cell_counts, tissue):
-    with open(data_product_metadata) as json_file:
+    with open(data_product_metadata, 'r+') as json_file:
         metadata = json.load(json_file)
-    cell_counts_entry = {"Processed Cell Type Counts": cell_counts}
-    metadata = metadata.update(cell_counts_entry)
-    with open(f"{tissue}_metadata.json", "w") as outfile:
-        json.dump(metadata, outfile)
+        metadata["Processed Cell Type Counts"] = cell_counts
+        json_file.seek(0)
+        json.dump(metadata, json_file, indent=4)
 
 
 def main(raw_h5ad_file: Path, data_product_metadata: Path, tissue: str = None):

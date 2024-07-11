@@ -29,13 +29,12 @@ def read_and_concat_csvs(annotations_csv):
     return annotations
 
 
-def add_raw_cell_counts(data_product_metadata, raw_cell_counts, tissue):
-    with open(data_product_metadata) as json_file:
+def add_raw_cell_counts(data_product_metadata, raw_cell_counts):
+    with open(data_product_metadata, 'r+') as json_file:
         metadata = json.load(json_file)
-    raw_cell_counts_entry = {"Raw Cell Type Counts": raw_cell_counts}
-    metadata = metadata.update(raw_cell_counts_entry)
-    with open(f"{tissue}_metadata.json", "w") as outfile:
-        json.dump(metadata, outfile)
+        metadata["Raw Cell Type Counts"].append(raw_cell_counts)
+        json_file.seek(0)
+        json.dump(metadata, json_file, indent=4)
 
 
 def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_metadata, tissue_type: str=None):
@@ -140,7 +139,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             # Cell type counts
             cell_type_counts = ad.obs["predicted_label"].value_counts().to_dict()
             ad.uns["cell_type_counts"] = cell_type_counts
-            add_raw_cell_counts(data_product_metadata, cell_type_counts, tissue_type)
+            add_raw_cell_counts(data_product_metadata, cell_type_counts)
 
     # Add metadata to AnnData object and write to file
     ad.uns["annotation_metadata"] = metadata
