@@ -48,5 +48,5 @@ outputs:
   data_product_metadata:
     type: File
     outputBinding: 
-      glob: "*_metadata.json"
+      glob: "*.json"
     doc: metadata for web app
