@@ -30,11 +30,12 @@ def read_and_concat_csvs(annotations_csv):
 
 
 def add_raw_cell_counts(data_product_metadata, raw_cell_counts):
-    with open(data_product_metadata, 'r+') as json_file:
+    with open(data_product_metadata, 'r') as json_file:
         metadata = json.load(json_file)
-        metadata["Raw Cell Type Counts"].append(raw_cell_counts)
-        json_file.seek(0)
-        json.dump(metadata, json_file, indent=4)
+    uuid = metadata["Data Product UUID"]
+    metadata["Raw Cell Type Counts"] = raw_cell_counts
+    with open(f"{uuid}.json", 'w') as outfile:
+        json.dump(metadata, outfile)
 
 
 def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_metadata, tissue_type: str=None):
