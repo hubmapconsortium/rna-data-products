@@ -44,3 +44,9 @@ outputs:
     outputBinding:
       glob: "*_raw.h5ad"
     doc: h5ad file containing raw expression data
+
+  data_product_metadata:
+    type: File
+    outputBinding: 
+      glob: "*.json"
+    doc: metadata for web app
