@@ -22,11 +22,6 @@ def upload_files_to_s3(file_list, uuid):
         upload_file_to_s3(file, uuid)
 
 
-def upload_to_ec2(umap_png, metadata_json, uuid, ssh_key):
-    os.system(f"scp -i {ssh_key} {umap_png} main_user@ec2-44-213-71-141.compute-1.amazonaws.com:/pipeline_outputs/{uuid}.png")
-    os.system(f"scp -i {ssh_key} {metadata_json} main_user@ec2-44-213-71-141.compute-1.amazonaws.com:/pipeline_outputs/{uuid}.json")
-
-
 def get_uuid(metadata_json):
     with open(metadata_json) as json_file:
         metadata = json.load(json_file)
@@ -39,7 +34,6 @@ def main(raw_h5ad, processed_h5ad, umap_png, data_product_metadata, access_key_i
     uuid = get_uuid(data_product_metadata)
     files = [raw_h5ad, processed_h5ad, umap_png, data_product_metadata]
     upload_files_to_s3(files, uuid)
-    upload_to_ec2(umap_png, data_product_metadata, uuid, ssh_key)
     f = open("finished.txt", "w")
     f.write("cwl wants an output file for this step")
     f.close()
@@ -53,7 +47,6 @@ if __name__ == "__main__":
     p.add_argument("data_product_metadata", type=Path)
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
-    p.add_argument("ssh_key", type=Path)
     args= p.parse_args()
 
-    main(args.annotated_raw_h5ad_file, args.processed_h5ad_file, args.umap_png, args.data_product_metadata, args.access_key_id, args.secret_access_key, args.ssh_key)
+    main(args.annotated_raw_h5ad_file, args.processed_h5ad_file, args.umap_png, args.data_product_metadata, args.access_key_id, args.secret_access_key)
