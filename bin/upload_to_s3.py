@@ -29,7 +29,7 @@ def get_uuid(metadata_json):
     return uuid
 
 
-def main(raw_h5ad, processed_h5ad, umap_png, data_product_metadata, access_key_id, secret_access_key, ssh_key):
+def main(raw_h5ad, processed_h5ad, umap_png, data_product_metadata, access_key_id, secret_access_key):
     set_access_keys(access_key_id, secret_access_key)
     uuid = get_uuid(data_product_metadata)
     files = [raw_h5ad, processed_h5ad, umap_png, data_product_metadata]
