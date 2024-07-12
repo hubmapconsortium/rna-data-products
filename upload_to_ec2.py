@@ -7,7 +7,7 @@ from pathlib import Path
 
 def get_uuid(data_product_metadata):
     with open(data_product_metadata, 'r') as json_file:
-        metadata = json.laod(json_file)
+        metadata = json.load(json_file)
     uuid = metadata["Data Product UUID"]
     return uuid
 
