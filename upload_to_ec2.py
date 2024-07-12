@@ -18,3 +18,6 @@ if __name__ == "__main__":
     p.add_argument("umap_png", type=Path)
     p.add_argument("data_product_metadata", type=Path)
     p.add_argument("ssh_key", type=Path)
+    args = p.parse_args()
+
+    main(args.umap_png, args.data_product_metadata, args.ssh_key)
