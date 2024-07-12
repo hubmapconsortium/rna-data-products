@@ -155,7 +155,7 @@ def split_and_save(adata, base_file_name, max_cells: int = 30000):
         adata_sub.write(part_file_name)
 
 
-def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids):
+def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_count):
     bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
     metadata = {
         "Data Product UUID": data_product_uuid,
@@ -164,7 +164,8 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids):
         "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
-        "Dataset HBMIDs": hbmids
+        "Dataset HBMIDs": hbmids,
+        "Raw Total Cell Count": cell_count
     }
     print("Writing metadata json")
     with open(f"{data_product_uuid}.json", "w") as outfile:
@@ -201,7 +202,8 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     adata.write(f"{raw_output_file_name}.h5ad")
     print(f"Splitting and writing {raw_output_file_name} into multiple files")
     split_and_save(adata, raw_output_file_name)
-    create_json(tissue, data_product_uuid, creation_time, uuids_list, hbmids_list)
+    total_cell_count = adata.obs.shape[0]
+    create_json(tissue, data_product_uuid, creation_time, uuids_list, hbmids_list, total_cell_count)
 
 
 if __name__ == "__main__":

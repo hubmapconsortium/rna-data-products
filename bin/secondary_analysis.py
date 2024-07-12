@@ -11,11 +11,12 @@ import pandas as pd
 import scanpy as sc
 
 
-def add_cell_counts(data_product_metadata, cell_counts):
+def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
     with open(data_product_metadata, 'r') as json_file:
         metadata = json.load(json_file)
     uuid = metadata["Data Product UUID"]
     metadata["Processed Cell Type Counts"] = cell_counts
+    metadata["Processed Total Cell Count"] = total_cell_count
     with open(f"{uuid}.json", 'w') as outfile:
         json.dump(metadata, outfile)
 
@@ -34,6 +35,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, tissue: str = None):
     sc.pp.filter_cells(adata, min_genes=200)
     sc.pp.filter_genes(adata, min_cells=3)
 
+    total_cell_count = adata.obs.shape[0]
     adata.obs["n_counts"] = adata.X.sum(axis=1)
 
     sc.pp.normalize_total(adata, target_sum=1e4)
@@ -66,10 +68,10 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, tissue: str = None):
     if "predicted_label" in adata.obs_keys():
         cell_type_counts = (adata.obs["predicted_label"].value_counts().to_dict())
         adata.uns["cell_type_counts"] = cell_type_counts
-        add_cell_counts(data_product_metadata, cell_type_counts)
+        add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
     else:
         cell_type_counts = {}
-        add_cell_counts(data_product_metadata, cell_type_counts)
+        add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
