@@ -51,7 +51,6 @@ if __name__ == "__main__":
     p.add_argument("processed_h5ad_file", type=Path)
     p.add_argument("umap_png", type=Path)
     p.add_argument("data_product_metadata", type=Path)
-    p.add_argument("tissue", type=str)
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
     p.add_argument("ssh_key", type=Path)
