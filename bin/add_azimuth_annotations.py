@@ -141,6 +141,9 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             cell_type_counts = ad.obs["predicted_label"].value_counts().to_dict()
             ad.uns["cell_type_counts"] = cell_type_counts
             add_raw_cell_counts(data_product_metadata, cell_type_counts)
+    else:
+        cell_type_counts = {}
+        add_raw_cell_counts(data_product_metadata, cell_type_counts)
 
     # Add metadata to AnnData object and write to file
     ad.uns["annotation_metadata"] = metadata
