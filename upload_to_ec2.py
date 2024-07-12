@@ -18,7 +18,7 @@ def upload_to_ec2(umap_png, metadata_json, uuid, ssh_key):
 
 
 def main(umap_png, metadata_json, ssh_key):
-    uuid = get_uuid(data_product_metadata)
+    uuid = get_uuid(metadata_json)
     upload_to_ec2(umap_png, metadata_json, uuid, ssh_key)
 
 
