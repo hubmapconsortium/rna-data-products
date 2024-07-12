@@ -5,7 +5,7 @@ label: Uploads the annotated and concatenated h5ad files and the umap png
 hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-python
-baseCommand: /opt/upload_files.py
+baseCommand: /opt/upload_to_s3.py
 
 inputs:
     annotated_raw_h5ad_file:
@@ -43,12 +43,6 @@ inputs:
         doc: AWS secret access key
         inputBinding:
             position: 5
-
-    ssh_key:
-        type: File
-        doc: SSH key for the main user of the data products VM
-        inputBinding:
-            position: 6
 
 outputs: 
     finished_text:
