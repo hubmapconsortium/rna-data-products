@@ -32,29 +32,23 @@ inputs:
         inputBinding:
             position: 3
     
-    tissue:
-        type: string?
-        doc: tissue type
-        inputBinding: 
-            position: 4
-    
     access_key_id:
         type: string?
         doc: AWS access key id
         inputBinding:
-            position: 5
+            position: 4
     
     secret_access_key:
         type: string
         doc: AWS secret access key
         inputBinding:
-            position: 6
+            position: 5
 
     ssh_key:
         type: File
         doc: SSH key for the main user of the data products VM
         inputBinding:
-            position: 7
+            position: 6
 
 outputs: 
     finished_text:

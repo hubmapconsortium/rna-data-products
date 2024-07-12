@@ -131,8 +131,6 @@ steps:
         source: secondary-analysis/umap_png
       - id: final_data_product_metadata
         source: secondary-analysis/final_data_product_metadata
-      - id: tissue
-        source: tissue
       - id: access_key_id
         source: access_key_id
       - id: secret_access_key
