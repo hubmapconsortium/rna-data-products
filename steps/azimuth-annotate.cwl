@@ -7,9 +7,9 @@ requirements:
     dockerPull: hubmap/rna-data-products-azimuth
 
 inputs:
-    raw_h5ad_file:
+    raw_h5ad_files:
         type: File
-        doc: The raw h5ad file
+        doc: The raw h5ad files
         inputBinding:
             position: 0
 

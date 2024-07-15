@@ -33,8 +33,20 @@ inputs:
       position: 4
 
 outputs:
+  raw_h5ad_files:
+    type: File[]
+    outputBinding:
+      glob: "*_raw_*.h5ad"
+    doc: h5ad files containing raw expression data
+
   raw_h5ad_file:
     type: File
     outputBinding:
       glob: "*_raw.h5ad"
     doc: h5ad file containing raw expression data
+
+  data_product_metadata:
+    type: File
+    outputBinding: 
+      glob: "*.json"
+    doc: metadata for web app

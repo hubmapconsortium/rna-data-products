@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 import json
 from pathlib import Path
+from typing import Iterable, List
 import warnings
 
 import anndata
@@ -20,6 +21,7 @@ def get_mapping_files():
         all_data_file = directory / "all_metadata.json"
         all_labels_file = directory / "all_labels.csv"
     return all_data_file, all_labels_file
+
 
 def read_and_concat_csvs(annotations_csv):
     csvs = [pd.read_csv(csv) for csv in annotations_csv]
@@ -113,7 +115,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
                     ad.obs.at[idx, cl_id] = mapped_values[1]
                     ad.obs.at[idx, standardized_label] = mapped_values[2]
                     ad.obs.at[idx, match] = mapped_values[3]
-
+            
             # Ensure columns are properly typed
             ad.obs[azimuth_label] = ad.obs[azimuth_label].astype(str)
             ad.obs[azimuth_id] = ad.obs[azimuth_id].astype(str)

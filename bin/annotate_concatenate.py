@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import requests
 import scipy.sparse
+import uuid
 import yaml
 
 GENE_MAPPING_DIRECTORIES = [
@@ -65,6 +66,13 @@ def annotate_file(
     # And the tissue type
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
     hubmap_id = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "hubmap_id"].values[0]
+    age = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "age"].values[0]
+    sex = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "sex"].values[0]
+    height = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "height"].values[0]
+    weight = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "weight"].values[0]
+    bmi = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "bmi"].values[0]
+    cause_of_death = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "cause_of_death"].values[0]
+    race = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "race"].values[0]
     filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
@@ -73,6 +81,13 @@ def annotate_file(
     unfiltered_copy.obs["hubmap_id"] = hubmap_id
     unfiltered_copy.obs["organ"] = tissue_type
     unfiltered_copy.obs["modality"] = "rna"
+    unfiltered_copy.obs["age"] = age
+    unfiltered_copy.obs["sex"] = sex
+    unfiltered_copy.obs["height"] = height
+    unfiltered_copy.obs["weight"] = weight
+    unfiltered_copy.obs["bmi"] = bmi
+    unfiltered_copy.obs["cause_of_death"] = cause_of_death
+    unfiltered_copy.obs["race"] = race
     unfiltered_copy.uns["annotation_metadata"] = (
         filtered_adata.uns["annotation_metadata"]
         if "annotation_metadata" in filtered_adata.uns.keys()
@@ -88,7 +103,6 @@ def annotate_file(
     unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
-
 
 
 def read_gene_mapping() -> Dict[str, str]:
@@ -130,9 +144,39 @@ def map_gene_ids(adata):
     return adata
 
 
+def split_and_save(adata, base_file_name, max_cells: int = 30000):
+    num_cells = adata.n_obs
+    num_splits = (num_cells // max_cells) + 1
+    for i in range(num_splits):
+        start_idx = i * max_cells
+        end_idx = min((i + 1) * max_cells, num_cells)
+        adata_sub = adata[start_idx:end_idx].copy()
+        part_file_name = f"{base_file_name}_part_{i+1}.h5ad"
+        adata_sub.write(part_file_name)
+
+
+def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_count):
+    bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
+    metadata = {
+        "Data Product UUID": data_product_uuid,
+        "Tissue": tissue,
+        "Raw URL": bucket_url + f"{tissue}_raw.h5ad",
+        "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
+        "Creation Time": creation_time,
+        "Dataset UUIDs": uuids,
+        "Dataset HBMIDs": hbmids,
+        "Raw Total Cell Count": cell_count
+    }
+    print("Writing metadata json")
+    with open(f"{data_product_uuid}.json", "w") as outfile:
+        json.dump(metadata, outfile)
+
+
 def main(data_directory: Path, uuids_file: Path, tissue: str = None):
-    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
+    raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
+    uuids_list = uuids_df["uuid"].to_list()
+    hbmids_list = uuids_df["hubmap_id"].to_list()
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
     file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
@@ -148,13 +192,18 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
     adata.uns["annotation_metadata"] = annotation_metadata
-    adata.uns["creation_date_time"] = str(datetime.now())
-    adata.uns["datasets"] = list(set(adata.obs.hubmap_id))
+    creation_time = str(datetime.now())
+    adata.uns["creation_date_time"] = creation_time
+    adata.uns["datasets"] = hbmids_list
+    data_product_uuid = str(uuid.uuid4())
+    adata.uns["uuid"] = data_product_uuid
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
-    adata.write(raw_output_file_name)
-
-    
+    adata.write(f"{raw_output_file_name}.h5ad")
+    print(f"Splitting and writing {raw_output_file_name} into multiple files")
+    split_and_save(adata, raw_output_file_name)
+    total_cell_count = adata.obs.shape[0]
+    create_json(tissue, data_product_uuid, creation_time, uuids_list, hbmids_list, total_cell_count)
 
 
 if __name__ == "__main__":

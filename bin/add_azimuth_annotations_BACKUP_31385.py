@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
+"""
+Util for copying package & reference metadata from JSON to anndata file in 'uns' slot.
+This step could not be bundled with the upstream R script because of an issue with
+reticulate. See: https://github.com/rstudio/reticulate/issues/209
+"""
+
 from argparse import ArgumentParser
 import json
 from pathlib import Path
 import warnings
 
 import anndata
+=======
+from argparse import ArgumentParser
+import json
+from pathlib import Path
+from typing import Iterable, List
+import warnings
+
+import anndata
 import numpy as np
+>>>>>>> origin/main
 import pandas as pd
 
 CELL_MAPPING_DIRECTORIES = [
@@ -21,6 +37,20 @@ def get_mapping_files():
         all_labels_file = directory / "all_labels.csv"
     return all_data_file, all_labels_file
 
+
+<<<<<<< HEAD
+def main(version_metadata: Path, raw_h5ad_file: Path, annotations_csv: Path, tissue_type: str=None):
+    # Load version metadata from JSON
+    with open(version_metadata, "rb") as f:
+        metadata = json.load(f)
+
+    # Read AnnData file
+    ad = anndata.read_h5ad(raw_h5ad_file)
+
+    # Read annotations CSV
+    annotations_df = pd.read_csv(annotations_csv)
+    annotations_df = annotations_df.set_index('barcodes')
+=======
 def read_and_concat_csvs(annotations_csv):
     csvs = [pd.read_csv(csv) for csv in annotations_csv]
     annotations = pd.concat(csvs)
@@ -42,6 +72,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
     # Load version metadata from JSON
     with open(version_metadata[0], "rb") as f:
         metadata = json.load(f)
+>>>>>>> origin/main
 
     all_data_file, all_labels_file = get_mapping_files()
     output_file_name = f"{tissue_type}_raw.h5ad" if tissue_type else "rna_raw.h5ad"
@@ -55,10 +86,13 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             with open(all_data_file) as j:
                 all_data = json.loads(j.read())
             organ_metadata = all_data[organ]
+<<<<<<< HEAD
+=======
             
             # Read csv files
             annotations_df = read_and_concat_csvs(annotations_csv)
             annotations_df = annotations_df.set_index('barcodes')
+>>>>>>> origin/main
 
             # Prepare annotation names
             azimuth_annotation_name = "predicted." + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
@@ -113,18 +147,25 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
                     ad.obs.at[idx, cl_id] = mapped_values[1]
                     ad.obs.at[idx, standardized_label] = mapped_values[2]
                     ad.obs.at[idx, match] = mapped_values[3]
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> origin/main
             # Ensure columns are properly typed
             ad.obs[azimuth_label] = ad.obs[azimuth_label].astype(str)
             ad.obs[azimuth_id] = ad.obs[azimuth_id].astype(str)
             ad.obs[cl_id] = ad.obs[cl_id].astype(str)
             ad.obs[standardized_label] = ad.obs[standardized_label].astype(str)
+<<<<<<< HEAD
+=======
             ad.obs[standardized_label].replace("", np.nan, inplace=True)
             ad.obs[azimuth_id].replace("", np.nan, inplace=True)
             ad.obs[azimuth_label].replace("", np.nan, inplace=True)
             ad.obs[cl_id].replace("", np.nan, inplace=True)
             ad.obs[match].replace("", np.nan, inplace=True)
             ad.obs[score].replace("", np.nan, inplace=True)
+>>>>>>> origin/main
             ad.obs[match] = ad.obs[match].astype(str)
             ad.obs[score] = pd.to_numeric(ad.obs[score], errors='coerce')
 
@@ -134,6 +175,9 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             for i, key in enumerate(organ_metadata["reviewers"]):
                 metadata[f"reviewer{i + 1}"] = key
             metadata["disclaimers"] = {"text": organ_metadata["disclaimer"]}
+<<<<<<< HEAD
+            ad.uns["cell_type_counts"] = (ad.obs["predicted_label"].value_counts().to_dict())
+=======
 
             # Cell type counts
             cell_type_counts = ad.obs["predicted_label"].value_counts().to_dict()
@@ -142,6 +186,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
     else:
         cell_type_counts = {}
         add_raw_cell_counts(data_product_metadata, cell_type_counts)
+>>>>>>> origin/main
 
     # Add metadata to AnnData object and write to file
     ad.uns["annotation_metadata"] = metadata
@@ -149,6 +194,15 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
 
 if __name__ == "__main__":
     p = ArgumentParser()
+<<<<<<< HEAD
+    p.add_argument("metadata_json", type=Path)
+    p.add_argument("raw_h5ad_file", type=Path)
+    p.add_argument("annotations_csv", type=Path)
+    p.add_argument("tissue", type=str, nargs="?")
+    args = p.parse_args()
+
+    main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.tissue)
+=======
     p.add_argument("--raw_h5ad_file", type=Path)
     p.add_argument("--tissue", type=str, nargs="?")
     p.add_argument("--metadata_json", type=str, nargs="+")
@@ -157,3 +211,4 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.data_product_metadata, args.tissue)
+>>>>>>> origin/main
