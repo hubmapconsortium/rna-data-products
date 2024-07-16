@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 
-
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
     with open(data_product_metadata, 'r') as json_file:
         metadata = json.load(json_file)

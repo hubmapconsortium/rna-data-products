@@ -12,9 +12,7 @@ inputs:
         type: File
         doc: raw h5ad file
         inputBinding:
-            prefix: --raw_h5ad_file
-            position: 0
-
+            position: 1
     tissue:
         type: string?
         doc: two letter code for tissue type

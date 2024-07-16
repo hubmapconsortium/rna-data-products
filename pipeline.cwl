@@ -47,6 +47,9 @@ outputs:
   final_data_product_metadata:
     outputSource: secondary-analysis/final_data_product_metadata
     type: File
+  shinycell_dir:
+    outputSource: make-shinycell/shinycell_dir
+    type: Directory
 
 steps:
 
@@ -116,6 +119,20 @@ steps:
       - final_data_product_metadata
     run: steps/secondary-analysis.cwl
     label: "Runs secondary anaylsis on annotated and concatenated data"
+
+  - id: make-shinycell
+    in:
+      - id: processed_h5ad_file
+        source: secondary-analysis/processed_h5ad_file
+      - id: tissue
+        source: tissue
+      - id: metadata_file
+        source: secondary-analysis/final_data_product_metadata
+    out:
+      - id: shinycell_dir
+
+    run: steps/make_shinycell.cwl
+    label: "Creates the shiny cell app for the data product"
 
   - id: upload-to-s3
     in:
