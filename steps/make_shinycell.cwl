@@ -19,6 +19,12 @@ inputs:
     inputBinding:
       position: 1
 
+  metadata_file:
+    type: File
+    doc: The metadata file
+    inputBinding:
+      position: 2
+
 outputs:
   shinyDir:
     type: Directory

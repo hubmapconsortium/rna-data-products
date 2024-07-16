@@ -12,7 +12,7 @@ if(length(newPkg)){install.packages(newPkg)}
 
 reqPkg = c("shiny", "shinyhelper", "data.table", "Matrix", "DT", "hdf5r", 
            "ggplot2", "gridExtra", "magrittr", "ggdendro", 
-           "here", "rprojroot", "tools")
+           "here", "rprojroot", "tools", "rjson")
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]
 if(length(newPkg)){install.packages(newPkg)}
 

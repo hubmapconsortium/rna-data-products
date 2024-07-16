@@ -1,12 +1,14 @@
 library(ShinyCell)
+library(rjson)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2) {
+if (length(args) != 3) {
   cat("Usage: Rscript make_shinycell.R <adata_object> <ref>\n")
   quit(status = 1)
 }
 inpFile <- args[1]
 tissue <- args[2]
+metadata_file <- args[3]
 
 tryCatch({
   scConf = createConfig(inpFile)
@@ -20,8 +22,14 @@ error = function(e) {
 )
 mainDir = "shinyApps"
 subDir = tissue
-shinyDir <- file.path(mainDir, subDir)
+
+json_data <- fromJSON(file=metadata_file)
+uuid = json_data['Data Product UUID']
+
+tissueDir <- file.path(mainDir, subDir)
+shinyDir <- file.path(mainDir, subDir, uuid)
 if (!dir.exists(mainDir)) {dir.create(mainDir)}
+if (!dir.exists(tissueDir)) {dir.create(tissueDir)}
 if (!dir.exists(shinyDir)) {dir.create(shinyDir)}  
 
 title = sprintf("Shiny Cell h5ad % s", tissue)
