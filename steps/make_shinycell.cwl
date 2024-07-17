@@ -26,7 +26,7 @@ inputs:
       position: 2
 
 outputs:
-  shinyDir:
+  shinycell_dir:
     type: Directory
     outputBinding:
       glob: "shinyApps"
