@@ -15,6 +15,7 @@ def get_uuid(data_product_metadata):
 def upload_to_ec2(umap_png, metadata_json, shiny_cell_dir, uuid, ssh_key):
     os.system(f"scp -i {ssh_key} {umap_png} main_user@ec2-44-213-71-141.compute-1.amazonaws.com:/pipeline_outputs/{uuid}.png")
     os.system(f"scp -i {ssh_key} {metadata_json} main_user@ec2-44-213-71-141.compute-1.amazonaws.com:/pipeline_outputs/{uuid}.json")
+    os.system(f"ssh -i {ssh_key} main_user@ec2-44-213-71-141.compute-1.amazonaws.com mkdir {uuid}")
     os.system(f"scp -i {ssh_key} {shiny_cell_dir}/* main_user@ec2-44-213-71-141.compute-1.amazonaws.com:{uuid}")
     os.system(f"ssh -i {ssh_key} main_user@ec2-44-213-71-141.compute-1.amazonaws.com sudo mkdir /srv/shiny-server/{uuid}")
     os.system(f"ssh -i {ssh_key} main_user@ec2-44-213-71-141.compute-1.amazonaws.com sudo mv {uuid}/* /srv/shiny-server/{uuid}")
