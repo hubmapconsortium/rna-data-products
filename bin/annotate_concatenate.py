@@ -32,6 +32,13 @@ def get_tissue_type(dataset: str) -> str:
     return organ_name.replace(" (Left)", "").replace(" (Right)", "")
 
 
+def convert_tissue_code(tissue_code):
+    with open("/opt/organ_types.yaml", 'r') as f:
+        data = yaml.load(f, Loader=yaml.SafeLoader)
+    tissue_name = data.get(tissue_code)['description']
+    return tissue_name
+
+
 def get_inverted_gene_dict():
     inverted_dict = defaultdict(list)
     gene_mapping = read_gene_mapping()
@@ -159,7 +166,7 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_co
     bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
     metadata = {
         "Data Product UUID": data_product_uuid,
-        "Tissue": tissue,
+        "Tissue": convert_tissue_code(tissue),
         "Raw URL": bucket_url + f"{tissue}_raw.h5ad",
         "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
         "Creation Time": creation_time,
