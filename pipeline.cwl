@@ -35,8 +35,8 @@ inputs:
 
 outputs:
 
-  annotated_raw_h5ad_file:
-    outputSource: add-azimuth-annotations/annotated_raw_h5ad_file
+  final_raw_h5ad_file:
+    outputSource: secondary=analysis/final_raw_h5ad_file
     type: File
   processed_h5ad_file:
     outputSource: secondary-analysis/processed_h5ad_file
@@ -114,6 +114,7 @@ steps:
         source: add-azimuth-annotations/updated_data_product_metadata
     
     out:
+      - final_raw_h5ad_file
       - processed_h5ad_file
       - umap_png
       - final_data_product_metadata
@@ -136,8 +137,8 @@ steps:
 
   - id: upload-to-s3
     in:
-      - id: annotated_raw_h5ad_file
-        source: add-azimuth-annotations/annotated_raw_h5ad_file
+      - id: final_raw_h5ad_file
+        source: secondary-analysis/final_raw_h5ad_file
       - id: processed_h5ad_file
         source: secondary-analysis/processed_h5ad_file
       - id: umap_png

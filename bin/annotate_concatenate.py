@@ -66,40 +66,16 @@ def find_file_pairs(directory):
 
 
 def annotate_file(
-    filtered_file: Path, unfiltered_file: Path, tissue_type: str, uuids_df: pd.DataFrame
+    unfiltered_file: Path, tissue_type: str, uuids_df: pd.DataFrame
 ) -> Tuple[anndata.AnnData, anndata.AnnData]:
     # Get the directory
     data_set_dir = fspath(unfiltered_file.parent.stem)
     # And the tissue type
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
-    hubmap_id = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "hubmap_id"].values[0]
-    age = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "age"].values[0]
-    sex = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "sex"].values[0]
-    height = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "height"].values[0]
-    weight = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "weight"].values[0]
-    bmi = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "bmi"].values[0]
-    cause_of_death = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "cause_of_death"].values[0]
-    race = uuids_df.loc[uuids_df["uuid"] == data_set_dir, "race"].values[0]
-    filtered_adata = anndata.read_h5ad(filtered_file)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs["barcode"] = unfiltered_adata.obs.index
     unfiltered_copy.obs["dataset"] = data_set_dir
-    unfiltered_copy.obs["hubmap_id"] = hubmap_id
-    unfiltered_copy.obs["organ"] = tissue_type
-    unfiltered_copy.obs["modality"] = "rna"
-    unfiltered_copy.obs["age"] = age
-    unfiltered_copy.obs["sex"] = sex
-    unfiltered_copy.obs["height"] = height
-    unfiltered_copy.obs["weight"] = weight
-    unfiltered_copy.obs["bmi"] = bmi
-    unfiltered_copy.obs["cause_of_death"] = cause_of_death
-    unfiltered_copy.obs["race"] = race
-    unfiltered_copy.uns["annotation_metadata"] = (
-        filtered_adata.uns["annotation_metadata"]
-        if "annotation_metadata" in filtered_adata.uns.keys()
-        else {"is_annotated": False}
-    )
     
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
@@ -189,7 +165,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
     print("Annotating objects")
     adatas = [
-        annotate_file(file_pair[0], file_pair[1], tissue, uuids_df)
+        annotate_file(file_pair[1], tissue, uuids_df)
         for file_pair in file_pairs
     ]
     annotation_metadata = {

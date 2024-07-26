@@ -27,6 +27,12 @@ inputs:
             position: 2
 
 outputs:
+    final_raw_h5ad_file:
+        type: File
+        outputBinding:
+            glob: "*_raw.h5ad"
+        doc: annotated h5ad file with additional obs columns
+
     processed_h5ad_file:
         type: File
         outputBinding:

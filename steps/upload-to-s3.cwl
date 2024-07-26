@@ -8,7 +8,7 @@ hints:
 baseCommand: /opt/upload_to_s3.py
 
 inputs:
-    annotated_raw_h5ad_file:
+    final_raw_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from datetime import datetime
 from pathlib import Path
 
 import anndata
@@ -9,6 +10,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import uuid
+
+
+def annotate_h5ad(obs, uuids_df):
+    merged = uuids_df.merge(obs, left_on="uuid", right_on="dataset", how="inner")
+    merged = merged.set_index(obs.index)
+    merged = merged.drop(columns=["Unnamed: 0"])
+    return merged
+
 
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
     with open(data_product_metadata, 'r') as json_file:
@@ -20,13 +30,21 @@ def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
         json.dump(metadata, outfile)
 
 
-def main(raw_h5ad_file: Path, data_product_metadata: Path, tissue: str = None):
+def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tissue: str = None):
+    raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
 
     adata = anndata.read_h5ad(raw_h5ad_file)
+    dataset_info = pd.read_csv(uuids_tsv, sep="\t")
+    annotated_obs = annotate_h5ad(adata, dataset_info)
+    adata.obs = annotated_obs
+    print("Writing raw data product")
+    adata.write_h5ad(f"{raw_output_file_name}.h5ad")
+
     uuid = str(adata.uns["uuid"])
+    
     print("Processing data product")
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
@@ -85,6 +103,7 @@ if __name__ == "__main__":
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
     p.add_argument("data_product_metadata", type=Path)
+    p.add_argument("uuids_file")
     p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
@@ -94,4 +113,4 @@ if __name__ == "__main__":
 
         manhole.install(activate_on="USR1")
 
-    main(args.raw_h5ad_file, args.data_product_metadata, args.tissue)
+    main(args.raw_h5ad_file, args.data_product_metadata, args.uuids_file, args.tissue)
