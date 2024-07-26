@@ -168,13 +168,9 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
         annotate_file(file_pair[1], tissue, uuids_df)
         for file_pair in file_pairs
     ]
-    annotation_metadata = {
-        adata.obs.dataset.iloc[0]: adata.uns["annotation_metadata"] for adata in adatas
-    }
     saved_var = adatas[0].var
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
-    adata.uns["annotation_metadata"] = annotation_metadata
     creation_time = str(datetime.now())
     adata.uns["creation_date_time"] = creation_time
     adata.uns["datasets"] = hbmids_list
