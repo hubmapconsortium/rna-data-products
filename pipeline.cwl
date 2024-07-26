@@ -36,7 +36,7 @@ inputs:
 outputs:
 
   final_raw_h5ad_file:
-    outputSource: secondary=analysis/final_raw_h5ad_file
+    outputSource: secondary-analysis/final_raw_h5ad_file
     type: File
   processed_h5ad_file:
     outputSource: secondary-analysis/processed_h5ad_file
