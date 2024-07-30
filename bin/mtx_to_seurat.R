@@ -1,8 +1,5 @@
 #!/usr/bin/env Rscript
 library(Seurat)
-library(Azimuth)
-library(anndata)
-library(rjson)
 
 args <- commandArgs(trailingOnly = TRUE)
 
