@@ -30,3 +30,5 @@ outputs:
         type: File
         outputBinding:
             glob: "*.Rds"
+
+baseCommand: [Rscript, /opt/mtx_to_seurat.R]
