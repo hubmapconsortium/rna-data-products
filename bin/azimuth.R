@@ -9,11 +9,9 @@ args <- commandArgs(trailingOnly = TRUE)
 #   cat("Usage: Rscript azimuth.R <adata_object> <ref>\n")
 #   quit(status = 1)
 # }
-# raw_h5ad_file <- args[1]
-tissue <- args[1]
-mtx_file <- args[2]
-features_file <- args[3]
-barcodes_file <- args[4]
+raw_h5ad_file <- args[1]
+tissue <- args[2]
+
 
 options(future.globals.maxSize = 8000 * 1024^2)
 
