@@ -1,5 +1,10 @@
 library(ShinyCell)
 library(rjson)
+library(Seurat)
+library(SeuratDisk)
+library(SingleCellExperiment)
+library(scuttle)
+library(zellkonverter)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 3) {
@@ -10,8 +15,14 @@ inpFile <- args[1]
 tissue <- args[2]
 metadata_file <- args[3]
 
+options(future.globals.maxSize = 8000 * 1024^2)
+
+sce <- readH5AD(inpFile, use_hdf5 = TRUE)
+
+sce <- logNormCounts(sce, assay.type="unscaled")
+
 tryCatch({
-  scConf = createConfig(inpFile)
+  scConf = createConfig(sce)
 },
 error = function(e) {
   reticulate::py_last_error()
@@ -32,5 +43,12 @@ if (!dir.exists(mainDir)) {dir.create(mainDir)}
 if (!dir.exists(tissueDir)) {dir.create(tissueDir)}
 if (!dir.exists(shinyDir)) {dir.create(shinyDir)}  
 
+options(error = function() {
+  sink(stderr())
+  on.exit(sink(NULL))
+  traceback()
+})
+
 title = sprintf("Shiny Cell h5ad % s", tissue)
-makeShinyApp(inpFile, scConf, shiny.dir = shinyDir, shiny.title = title) 
+makeShinyApp(sce, scConf, shiny.dir = shinyDir, shiny.title = title) 
+ 
