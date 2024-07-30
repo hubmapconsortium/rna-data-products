@@ -17,5 +17,5 @@ seurat_object <- CreateSeuratObject(counts = expression_matrix)
 
 SaveSeuratRds(
     object = seurat_object,
-    file = "seurat_object.rds"
+    file = "seurat_object.Rds"
 )
