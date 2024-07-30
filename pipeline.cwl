@@ -87,7 +87,8 @@ steps:
     
     out:
       [seurat_rds]
-
+    run: steps/mtx-to-seurat.cwl
+    
   - id: azimuth-annotate
     scatter: [seurat_rds]
     scatterMethod: dotproduct
