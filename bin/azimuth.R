@@ -5,12 +5,15 @@ library(anndata)
 library(rjson)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2) {
-  cat("Usage: Rscript azimuth.R <adata_object> <ref>\n")
-  quit(status = 1)
-}
-raw_h5ad_file <- args[1]
-tissue <- args[2]
+# if (length(args) != 2) {
+#   cat("Usage: Rscript azimuth.R <adata_object> <ref>\n")
+#   quit(status = 1)
+# }
+# raw_h5ad_file <- args[1]
+tissue <- args[1]
+mtx_file <- args[2]
+features_file <- args[3]
+barcodes_file <- args[4]
 
 options(future.globals.maxSize = 8000 * 1024^2)
 
