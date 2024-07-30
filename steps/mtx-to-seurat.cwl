@@ -7,7 +7,7 @@ requirements:
     dockerPull: hubmap/rna-data-products-azimuth
 
 inputs:
-    mtx_files:
+    matrix_files:
         type: File
         doc: count matrixes
         inputBinding:
