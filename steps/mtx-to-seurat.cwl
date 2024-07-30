@@ -28,3 +28,5 @@ inputs:
 outputs: 
     seurat_file:
         type: File
+        outputBinding:
+            glob: "*.Rds"
