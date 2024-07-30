@@ -26,7 +26,7 @@ inputs:
             position: 2
 
 outputs: 
-    seurat_file:
+    seurat_rds:
         type: File
         outputBinding:
             glob: "*.Rds"

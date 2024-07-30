@@ -9,10 +9,12 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import anndata
+import gzip
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
+import scipy.io
 import scipy.sparse
 import uuid
 import yaml
@@ -135,7 +137,26 @@ def split_and_save(adata, base_file_name, max_cells: int = 30000):
         end_idx = min((i + 1) * max_cells, num_cells)
         adata_sub = adata[start_idx:end_idx].copy()
         part_file_name = f"{base_file_name}_part_{i+1}.h5ad"
+        matrix = adata_sub.X
+        features = pd.Series(adata_sub.var.index)
+        barcodes = pd.Series(adata_sub.obs.index)
+        write_mtx(matrix, part_file_name)
+        write_features(features, part_file_name)
+        write_barcodes(barcodes, part_file_name)
         adata_sub.write(part_file_name)
+
+
+def write_mtx(matrix, part_file_name):
+    with gzip.open(f"{part_file_name}_counts_matrix.mtx.gz", "wb") as f:
+        scipy.io.mmwrite(f, matrix)
+
+
+def write_features(features, part_file_name):
+    features.to_csv(f"{part_file_name}_features.tsv.gz", index=False)
+
+
+def write_barcodes(barcodes, part_file_name):
+    barcodes.to_csv(f"{part_file_name}_barcodes.tsv.gz", index=False)
 
 
 def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_count):

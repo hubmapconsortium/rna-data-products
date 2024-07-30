@@ -68,15 +68,32 @@ steps:
       - raw_h5ad_files
       - raw_h5ad_file
       - data_product_metadata
+      - matrix_files
+      - features_files
+      - barcodes_files
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
   
+  - id: mtx-to-seurat
+    scatter: [matrix_files, features_files, barcodes_files]
+    scatterMethod: dotproduct
+    in:
+      - id: matrix_files
+        source: annotate-concatenate/matrix_files
+      - id: features_files
+        source: annotate-concatenate/features_files
+      - id: barcodes_files
+        source: annotate-concatenate/barcodes_files
+    
+    out:
+      [seurat_rds]
+
   - id: azimuth-annotate
-    scatter: [raw_h5ad_files]
+    scatter: [seurat_rds]
     scatterMethod: dotproduct
     in: 
-      - id: raw_h5ad_files
-        source: annotate-concatenate/raw_h5ad_files
+      - id: seurat_rds
+        source: mtx-to-seurat/seurat_rds
       - id: tissue
         source: tissue
     
