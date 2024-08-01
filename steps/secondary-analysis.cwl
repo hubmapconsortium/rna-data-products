@@ -20,11 +20,17 @@ inputs:
         inputBinding:
             position: 1
     
+    uuids_file:
+        type: File
+        doc: File with UUIDs and patient metadata
+        inputBinding:
+            position: 2
+    
     updated_data_product_metadata:
         type: File
         doc: data product metadata
         inputBinding: 
-            position: 2
+            position: 3
 
 outputs:
     final_raw_h5ad_file:

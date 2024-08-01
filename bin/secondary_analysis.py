@@ -102,8 +102,8 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
-    p.add_argument("data_product_metadata", type=Path)
     p.add_argument("uuids_file")
+    p.add_argument("data_product_metadata", type=Path)
     p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()

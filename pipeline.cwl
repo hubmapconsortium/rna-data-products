@@ -88,7 +88,7 @@ steps:
     out:
       [seurat_rds]
     run: steps/mtx-to-seurat.cwl
-    
+
   - id: azimuth-annotate
     scatter: [seurat_rds]
     scatterMethod: dotproduct
@@ -128,6 +128,8 @@ steps:
         source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: tissue
         source: tissue
+      - id: uuids_file
+        source: uuids_file
       - id: updated_data_product_metadata
         source: add-azimuth-annotations/updated_data_product_metadata
     
