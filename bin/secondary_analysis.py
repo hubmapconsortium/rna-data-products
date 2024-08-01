@@ -38,7 +38,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
 
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = annotate_h5ad(adata, dataset_info)
+    annotated_obs = annotate_h5ad(adata.obs, dataset_info)
     adata.obs = annotated_obs
     print("Writing raw data product")
     adata.write_h5ad(f"{raw_output_file_name}.h5ad")
