@@ -35,8 +35,8 @@ inputs:
 
 outputs:
 
-  annotated_raw_h5ad_file:
-    outputSource: add-azimuth-annotations/annotated_raw_h5ad_file
+  final_raw_h5ad_file:
+    outputSource: secondary-analysis/final_raw_h5ad_file
     type: File
   processed_h5ad_file:
     outputSource: secondary-analysis/processed_h5ad_file
@@ -68,15 +68,33 @@ steps:
       - raw_h5ad_files
       - raw_h5ad_file
       - data_product_metadata
+      - matrix_files
+      - features_files
+      - barcodes_files
     run: steps/annotate-concatenate.cwl
     label: "Annotates and concatenates h5ad data files in directory"
   
+  - id: mtx-to-seurat
+    scatter: [matrix_files, features_files, barcodes_files]
+    scatterMethod: dotproduct
+    in:
+      - id: matrix_files
+        source: annotate-concatenate/matrix_files
+      - id: features_files
+        source: annotate-concatenate/features_files
+      - id: barcodes_files
+        source: annotate-concatenate/barcodes_files
+    
+    out:
+      [seurat_rds]
+    run: steps/mtx-to-seurat.cwl
+
   - id: azimuth-annotate
-    scatter: [raw_h5ad_files]
+    scatter: [seurat_rds]
     scatterMethod: dotproduct
     in: 
-      - id: raw_h5ad_files
-        source: annotate-concatenate/raw_h5ad_files
+      - id: seurat_rds
+        source: mtx-to-seurat/seurat_rds
       - id: tissue
         source: tissue
     
@@ -110,10 +128,13 @@ steps:
         source: add-azimuth-annotations/annotated_raw_h5ad_file
       - id: tissue
         source: tissue
+      - id: uuids_file
+        source: uuids_file
       - id: updated_data_product_metadata
         source: add-azimuth-annotations/updated_data_product_metadata
     
     out:
+      - final_raw_h5ad_file
       - processed_h5ad_file
       - umap_png
       - final_data_product_metadata
@@ -136,8 +157,8 @@ steps:
 
   - id: upload-to-s3
     in:
-      - id: annotated_raw_h5ad_file
-        source: add-azimuth-annotations/annotated_raw_h5ad_file
+      - id: final_raw_h5ad_file
+        source: secondary-analysis/final_raw_h5ad_file
       - id: processed_h5ad_file
         source: secondary-analysis/processed_h5ad_file
       - id: umap_png
