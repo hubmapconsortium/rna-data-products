@@ -164,6 +164,7 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_co
     metadata = {
         "Data Product UUID": data_product_uuid,
         "Tissue": convert_tissue_code(tissue),
+        "Assay": "rna",
         "Raw URL": bucket_url + f"{tissue}_raw.h5ad",
         "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
         "Creation Time": creation_time,
