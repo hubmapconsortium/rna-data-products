@@ -8,6 +8,7 @@ import anndata
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import scanpy as sc
 import uuid
@@ -23,11 +24,16 @@ def annotate_h5ad(obs, uuids_df):
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
     with open(data_product_metadata, 'r') as json_file:
         metadata = json.load(json_file)
-    uuid = metadata["Data Product UUID"]
     metadata["Processed Cell Type Counts"] = cell_counts
     metadata["Processed Total Cell Count"] = total_cell_count
-    with open(f"{uuid}.json", 'w') as outfile:
-        json.dump(metadata, outfile)
+    return metadata
+
+def add_file_sizes(data_product_metadata, raw_size, processed_size):
+    data_product_metadata["Raw File Size"] = raw_size
+    data_product_metadata["Processed File Size"] = processed_size
+    uuid = data_product_metadata["Data Product UUID"]
+    with open(f"{uuid}.json", "w") as outfile:
+        json.dump(data_product_metadata, outfile)
 
 
 def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tissue: str = None):
@@ -35,6 +41,8 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
+    
+    raw_file_size = os.path.getsize(raw_h5ad_file)
 
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
@@ -85,10 +93,10 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
     if "predicted_label" in adata.obs_keys():
         cell_type_counts = (adata.obs["predicted_label"].value_counts().to_dict())
         adata.uns["cell_type_counts"] = cell_type_counts
-        add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
+        metadata = add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
     else:
         cell_type_counts = {}
-        add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
+        metadata = add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
@@ -96,6 +104,8 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
 
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
+    processed_file_size = os.path.getsize(processed_output_file_name)
+    add_file_sizes(metadata, raw_file_size, processed_file_size)
 
 
 if __name__ == "__main__":
