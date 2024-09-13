@@ -14,11 +14,17 @@ import scanpy as sc
 import uuid
 
 
-def annotate_h5ad(obs, uuids_df):
-    merged = uuids_df.merge(obs, left_on="uuid", right_on="dataset", how="inner")
-    merged = merged.set_index(obs.index)
-    merged = merged.drop(columns=["Unnamed: 0"])
-    return merged
+def annotate_h5ad(obs, uuids_df: pd.DataFrame):
+    uuids_df["uuid"] = uuids_df["uuid"].astype(str)
+    obs["dataset"] = obs["dataset"].astype(str)
+    uuids_dict = uuids_df.set_index('uuid').to_dict(orient='index')
+    for index, row in obs.iterrows():
+        dataset_value = row['dataset']
+        if dataset_value in uuids_dict:
+            for key, value in uuids_dict[dataset_value].items():
+                obs.at[index, key] = value
+    obs.drop(columns=['Unnamed: 0'])
+    return obs
 
 
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
@@ -49,6 +55,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
     annotated_obs = annotate_h5ad(adata.obs, dataset_info)
     adata.obs = annotated_obs
     print("Writing raw data product")
+    print(adata.obs_keys())
     adata.write_h5ad(f"{raw_output_file_name}.h5ad")
 
     uuid = str(adata.uns["uuid"])
