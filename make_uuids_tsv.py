@@ -37,6 +37,24 @@ def extract_donor_metadata(metadata):
             donor_info["cause_of_death"] = item.get('preferred_term')
         elif concept == "Race":
             donor_info["race"] = item.get('preferred_term')
+    
+    for item in metadata.get('living_donor_data', []):
+        concept = item.get('grouping_concept_preferred_term')
+        value = item.get('data_value')
+        if concept == "Age":
+            donor_info["age"] = value
+        elif concept == "Sex":
+            donor_info["sex"] = item.get('preferred_term')
+        elif concept == "Height":
+            donor_info["height"] = value
+        elif concept == "Weight":
+            donor_info["weight"] = value
+        elif concept == "Body mass index":
+            donor_info["bmi"] = value
+        elif concept == "Cause of death":
+            donor_info["cause_of_death"] = item.get('preferred_term')
+        elif concept == "Race":
+            donor_info["race"] = item.get('preferred_term')
 
     return donor_info
 
@@ -109,48 +127,6 @@ def get_uuids(organ_name_mapping: dict, organ: str = None):
     else:
         print("Error:", response.status_code)
         return [], [], []
-    
-
-def fill_in_nans(uuids_df: pd.DataFrame) -> pd.DataFrame:
-    _donor_cache = {}
-    
-    for index, row in uuids_df.iterrows():
-        if pd.isna(row["age"]) or pd.isna(row["sex"]) or pd.isna(row["race"]):
-            uuid = row["uuid"]
-            # Check if donor data is already cached
-            if uuid not in _donor_cache:
-                url = f"https://entity.api.hubmapconsortium.org/datasets/{uuid}/donors"
-                response = requests.get(url)
-                # Ensure the request is successful
-                if response.status_code == 200:
-                    donor_data = json.loads(response.content)[0]
-                    metadata = donor_data["metadata"]["living_donor_data"]
-                    # Populate donor info
-                    donor = {}
-                    for md in metadata:
-                        key = md["grouping_concept_preferred_term"].lower()
-                        if key in ["sex", "race", "cause of death"]:
-                            donor[key] = md["preferred_term"]
-                        elif key == "age":
-                            donor[key] = md["data_value"]
-                            if md["units"] == "months":
-                                donor[key] = str(float(donor[key]) / 12)
-                        elif key == "weight":
-                            donor[key] = md["data_value"]
-                        elif key == "height":
-                            donor[key] = md["data_value"]
-                        elif key == "body mass index":
-                            donor["bmi"] = md["data_value"]
-                    _donor_cache[uuid] = donor  # Cache the donor data
-                else:
-                    print(f"Failed to fetch data for uuid: {uuid}")
-                    continue
-            else:
-                donor = _donor_cache[uuid]
-            # Update the DataFrame with donor data
-            for key, value in donor.items():
-                uuids_df.loc[index, key] = value
-    return uuids_df
 
 
 def main(tissue_type: str):
@@ -171,7 +147,6 @@ def main(tissue_type: str):
             output_file_name = f"{key_for_tissue[0].lower()}.tsv"
     else:
         output_file_name = "rna.tsv"
-    result_df = fill_in_nans(result_df)
     print(result_df)
     result_df.to_csv(output_file_name, sep="\t")
 
