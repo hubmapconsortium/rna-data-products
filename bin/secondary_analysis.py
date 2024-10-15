@@ -23,7 +23,7 @@ def annotate_h5ad(obs, uuids_df: pd.DataFrame):
         if dataset_value in uuids_dict:
             for key, value in uuids_dict[dataset_value].items():
                 obs.at[index, key] = value
-    obs.drop(columns=['Unnamed: 0'])
+    del(obs["Unnamed: 0"])
     return obs
 
 
