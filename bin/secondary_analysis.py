@@ -83,6 +83,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
 
     # leiden clustering
     sc.tl.leiden(adata)
+    sc.tl.rank_genes_groups(adata, "leiden")
 
     if "predicted_label" in adata.obs_keys():
 
@@ -94,7 +95,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
         adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
         # Filter out cell types with only one cell for this analysis
         # sc.pp.filter_genes(adata_filter, min_cells=3)
-        sc.tl.rank_genes_groups(adata_filter, "predicted_label")
+        sc.tl.rank_genes_groups(adata_filter, "predicted_label", key_added="rank_genes_groups_cell_types")
         adata.uns = adata_filter.uns
     
     if "predicted_label" in adata.obs_keys():
