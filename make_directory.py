@@ -60,7 +60,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str):
         print("Input files:", input_files)
         for input_file in input_files:
             check_call(
-                f"cp {fspath(input_file)} {h5ads_directory}/{input_file.name}",
+                f"cp '{input_file}' '{h5ads_directory}/{input_file.name}'",
                 shell=True,
             )
 

@@ -9,7 +9,91 @@ import yaml
 organ_types_yaml_file = "bin/organ_types.yaml"
 
 
+def get_uuids(organ_name_mapping: dict, organ: str):
+    organ_code_mapping = {organ_name_mapping[key]: key for key in organ_name_mapping}
+    
+    # Define the query payload based on organ
+    if organ is None:
+        query_payload = {
+            "from": 0,
+            "size": 10000,
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
+                        {"match": {"data_access_level": "public"}}
+                    ]
+                }
+            }
+        }
+    else:
+        query_payload = {
+            "from": 0,
+            "size": 10000,
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
+                        {"match": {"data_access_level": "public"}},
+                        {"match": {"origin_samples.organ": organ_code_mapping[organ]}}
+                    ]
+                }
+            }
+        }
+
+    # Make the request
+    url = "https://search.api.hubmapconsortium.org/v3/search"
+    response = requests.post(url, json=query_payload)
+    print("Response status code: ", response.status_code)
+
+    # Handle a successful response
+    if response.status_code == 200:
+        return process_response(response)
+    
+    # Handle 303 redirection
+    elif response.status_code == 303:
+        redirection_url = response.text.strip()  # Get redirection URL from response body
+        print("Following redirection URL: ", redirection_url)
+        
+        # Make a request to the redirection URL
+        redirection_response = requests.get(redirection_url)
+        if redirection_response.status_code == 200:
+            return process_response(redirection_response)
+    
+    # Handle other error responses
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+        return [], [], []
+
+
+def process_response(response):
+    """
+    Helper function to process the JSON response and extract UUIDs, HubMAP IDs, and donor metadata.
+    """
+    data = response.json()
+    hits = data.get("hits", {}).get("hits", [])
+    
+    uuids = []
+    hubmap_ids = []
+    donor_metadata_list = []
+
+    # Loop through each dataset (hit) and extract the relevant information
+    for hit in hits:
+        source = hit["_source"]
+        uuids.append(source["uuid"])
+        hubmap_ids.append(source["hubmap_id"])
+        
+        # Attempt to extract donor metadata, if available
+        donor_metadata = source.get("donor", {}).get("metadata", {})
+        donor_metadata_list.append(extract_donor_metadata(donor_metadata))
+
+    return uuids, hubmap_ids, donor_metadata_list
+
+
 def extract_donor_metadata(metadata):
+    """
+    Extract donor metadata, including age, sex, height, weight, and other relevant information.
+    """
     donor_info = {
         "age": None,
         "sex": None,
@@ -17,12 +101,13 @@ def extract_donor_metadata(metadata):
         "weight": None,
         "bmi": None,
         "cause_of_death": None,
-        "race": None 
+        "race": None
     }
 
     for item in metadata.get('organ_donor_data', []):
         concept = item.get('grouping_concept_preferred_term')
         value = item.get('data_value')
+        
         if concept == "Age":
             donor_info["age"] = value
         elif concept == "Sex":
@@ -37,7 +122,7 @@ def extract_donor_metadata(metadata):
             donor_info["cause_of_death"] = item.get('preferred_term')
         elif concept == "Race":
             donor_info["race"] = item.get('preferred_term')
-    
+
     for item in metadata.get('living_donor_data', []):
         concept = item.get('grouping_concept_preferred_term')
         value = item.get('data_value')
@@ -59,74 +144,6 @@ def extract_donor_metadata(metadata):
     return donor_info
 
 
-def get_uuids(organ_name_mapping: dict, organ: str = None):
-    organ_code_mapping = {organ_name_mapping[key]: key for key in organ_name_mapping}
-    if organ == None:
-        query_payload = {
-            "from": 0,
-            "size": 10000,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
-                        {"match": {"data_access_level": "public"}},
-                    ]
-                }
-            },
-        }
-    else:
-        query_payload = {
-            "from": 0,
-            "size": 10000,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
-                        {"match": {"data_access_level": "public"}},
-                        {"match": {"origin_samples.organ": organ_code_mapping[organ]}},
-                    ]
-                }
-            },
-        }
-    query_payload_str = json.dumps(query_payload)
-    print(query_payload_str)
-
-    url = "https://search.api.hubmapconsortium.org/v3/search"
-    response = requests.post(url, json=query_payload)
-    print("Response status code: ", response.status_code)
-    print("Response url: ", response.url)
-    print("Response reason: ", response.reason)
-    if response.status_code == 200:
-        data = response.json()
-        # Accessing nested dictionaries to retrieve uuid and hubmap_id
-        hits = data.get("hits", {}).get("hits", [])
-        uuids = []
-        hubmap_ids = []
-        donor_metadata_list = []
-
-        for hit in hits:
-            source = hit["_source"]
-            uuids.append(source["uuid"])
-            hubmap_ids.append(source["hubmap_id"])
-            donor_metadata = source.get("donor", {}).get("metadata", {})
-            donor_metadata_list.append(extract_donor_metadata(donor_metadata))
-
-        return uuids, hubmap_ids, donor_metadata_list
-    
-    elif response.status_code == 303:
-        print("Response body: ", response.text)
-        redirection_url = response.text
-        print("Redirection URL: ", redirection_url)
-        redirection_response = requests.get(redirection_url)
-        if redirection_response.status_code == 200:
-            data = redirection_response.json()
-            hits = data.get("hits", {}).get("hits", [])
-            uuids = [hit["_source"]["uuid"] for hit in hits]
-            hubmap_ids = [hit["_source"]["hubmap_id"] for hit in hits]
-            return uuids, hubmap_ids
-    else:
-        print("Error:", response.status_code)
-        return [], [], []
 
 
 def main(tissue_type: str):
@@ -154,7 +171,6 @@ def main(tissue_type: str):
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("tissue_type", type=str, nargs="?", help="Type of tissue (optional)")
-
     args = p.parse_args()
 
     main(args.tissue_type)
