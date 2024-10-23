@@ -14,7 +14,7 @@ import scanpy as sc
 import uuid
 
 
-def annotate_h5ad(obs, uuids_df: pd.DataFrame):
+def add_patient_metadata(obs, uuids_df):
     uuids_df["uuid"] = uuids_df["uuid"].astype(str)
     obs["dataset"] = obs["dataset"].astype(str)
     uuids_dict = uuids_df.set_index('uuid').to_dict(orient='index')
@@ -22,24 +22,8 @@ def annotate_h5ad(obs, uuids_df: pd.DataFrame):
         dataset_value = row['dataset']
         if dataset_value in uuids_dict:
             for key, value in uuids_dict[dataset_value].items():
-                if key in obs.columns:
-                    if pd.isna(value):  # Check for NaNs
-                        obs.at[index, key] = pd.NA
-                    else:
-                        if pd.api.types.is_numeric_dtype(obs[key]):
-                            try:
-                                obs.at[index, key] = float(value)
-                            except ValueError:
-                                print(f"Skipping non-numeric value '{value}' for column '{key}'")
-                        else:
-                            obs.at[index, key] = value
-                else:
-                    # If the column doesn't exist, create it with the correct type
-                    obs[key] = pd.NA  # Initialize with NA to avoid dtype conflicts
-                    if not pd.isna(value):
-                        obs.at[index, key] = value
-    if "Unnamed: 0" in obs.columns:
-        del obs["Unnamed: 0"]
+                obs.at[index, key] = value
+    del(obs["Unnamed: 0"])
     return obs
 
 
@@ -68,7 +52,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
 
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = annotate_h5ad(adata.obs, dataset_info)
+    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
     adata.obs = annotated_obs
     print("Writing raw data product")
     print(adata.obs_keys())
