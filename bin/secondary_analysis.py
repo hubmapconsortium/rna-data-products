@@ -22,8 +22,24 @@ def annotate_h5ad(obs, uuids_df: pd.DataFrame):
         dataset_value = row['dataset']
         if dataset_value in uuids_dict:
             for key, value in uuids_dict[dataset_value].items():
-                obs.at[index, key] = value
-    del(obs["Unnamed: 0"])
+                if key in obs.columns:
+                    if pd.isna(value):  # Check for NaNs
+                        obs.at[index, key] = pd.NA
+                    else:
+                        if pd.api.types.is_numeric_dtype(obs[key]):
+                            try:
+                                obs.at[index, key] = float(value)
+                            except ValueError:
+                                print(f"Skipping non-numeric value '{value}' for column '{key}'")
+                        else:
+                            obs.at[index, key] = value
+                else:
+                    # If the column doesn't exist, create it with the correct type
+                    obs[key] = pd.NA  # Initialize with NA to avoid dtype conflicts
+                    if not pd.isna(value):
+                        obs.at[index, key] = value
+    if "Unnamed: 0" in obs.columns:
+        del obs["Unnamed: 0"]
     return obs
 
 
