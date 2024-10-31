@@ -14,17 +14,14 @@ import scanpy as sc
 import uuid
 
 
-def annotate_h5ad(obs, uuids_df: pd.DataFrame):
-    uuids_df["uuid"] = uuids_df["uuid"].astype(str)
-    obs["dataset"] = obs["dataset"].astype(str)
-    uuids_dict = uuids_df.set_index('uuid').to_dict(orient='index')
-    for index, row in obs.iterrows():
-        dataset_value = row['dataset']
-        if dataset_value in uuids_dict:
-            for key, value in uuids_dict[dataset_value].items():
-                obs.at[index, key] = value
-    del(obs["Unnamed: 0"])
-    return obs
+def add_patient_metadata(obs, uuids_df):
+    merged = uuids_df.merge(obs, left_on="uuid", right_on="dataset", how="inner")
+    merged = merged.set_index(obs.index)
+    merged = merged.drop(columns=["Unnamed: 0"])
+    merged = merged.fillna(np.nan)
+    merged["age"] = pd.to_numeric(merged["age"])
+    obs = obs.loc[:, ~obs.columns.str.contains('^Unnamed')]
+    return merged
 
 
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
@@ -52,7 +49,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
 
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = annotate_h5ad(adata.obs, dataset_info)
+    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
     adata.obs = annotated_obs
     print("Writing raw data product")
     print(adata.obs_keys())
