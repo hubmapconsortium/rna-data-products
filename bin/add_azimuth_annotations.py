@@ -15,12 +15,6 @@ CELL_MAPPING_DIRECTORIES = [
 ]
 
 
-def get_mapping_files():
-    for directory in CELL_MAPPING_DIRECTORIES:
-        all_data_file = directory / "all_metadata.json"
-        all_labels_file = directory / "all_labels.csv"
-    return all_data_file, all_labels_file
-
 def read_and_concat_csvs(annotations_csv):
     csvs = [pd.read_csv(csv) for csv in annotations_csv]
     annotations = pd.concat(csvs)
@@ -43,7 +37,6 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
     with open(version_metadata[0], "rb") as f:
         metadata = json.load(f)
 
-    all_data_file, all_labels_file = get_mapping_files()
     output_file_name = f"{tissue_type}_raw.h5ad" if tissue_type else "rna_raw.h5ad"
 
     # Check if annotation was performed
@@ -52,7 +45,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
 
         if organ in ["lung", "heart", "kidney"]:
             # Load additional metadata
-            with open(all_data_file) as j:
+            with open("/all_metadata.json", 'r') as j:
                 all_data = json.loads(j.read())
             organ_metadata = all_data[organ]
             
@@ -80,7 +73,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
                 )
 
             # Load mapping data
-            mapping_df = pd.read_csv(all_labels_file)
+            mapping_df = pd.read_csv("/all_labels.csv")
             organ_annotation = organ + "_" + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
             mapping_df = mapping_df.loc[mapping_df['Organ_Level'] == organ_annotation]
 
