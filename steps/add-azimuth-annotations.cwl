@@ -4,7 +4,7 @@ label: Adds azimuth annotations to raw data product
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/rna-data-products-python
+    dockerPull: hubmap/rna-data-products-azimuth
 baseCommand: /opt/add_azimuth_annotations.py
 
 inputs:
