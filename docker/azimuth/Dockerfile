@@ -1,4 +1,4 @@
-FROM hubmap/azimuth-annotate:1.4
+FROM hubmap/azimuth-annotate:2.0
 COPY bin/azimuth.R /opt
 COPY bin/mtx_to_seurat.R /opt
 RUN chmod -R +x /opt/azimuth.R
