@@ -210,7 +210,7 @@ steps:
     in:
      - id: zarr_dir
        source: anndata-to-ui/output_directory
-     - id: final_data_product_metadata
+     - id: metadata_file
        source: secondary-analysis/final_data_product_metadata
      - id: access_key_id
        source: access_key_id
