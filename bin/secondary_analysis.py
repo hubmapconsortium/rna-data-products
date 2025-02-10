@@ -70,7 +70,6 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
     sc.pp.normalize_total(adata, target_sum=1e4)
     sc.pp.log1p(adata)
     adata.layers["unscaled"] = adata.X.copy()
-    #    sc.pp.combat(adata, "dataset")
     sc.pp.scale(adata, max_value=10)
 
     sc.pp.pca(adata, n_comps=50)
@@ -90,8 +89,6 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
             cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
         ]
         adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
-        # Filter out cell types with only one cell for this analysis
-        # sc.pp.filter_genes(adata_filter, min_cells=3)
         sc.tl.rank_genes_groups(adata_filter, "predicted_label", key_added="rank_genes_groups_cell_types")
         adata.uns = adata_filter.uns
     
