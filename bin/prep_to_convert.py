@@ -23,10 +23,10 @@ def main(processed_h5ad_file: Path):
             adata.uns["cell_type_counts"][cell_type.replace(" ", "_")] = adata.uns[
                 "cell_type_counts"
             ].pop(cell_type)
-    # save where required for use with anndata-to-ui
+    # Save where required for use with anndata-to-ui
     os.mkdir("./processed_dir")
     adata.write_h5ad("./processed_dir/secondary_analysis.h5ad")
-    # shutil.copy(processed_h5ad_file, "./processed_dir/secondary_analysis.h5ad")
+
 
 
 if __name__ == "__main__":
