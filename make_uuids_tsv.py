@@ -11,7 +11,7 @@ organ_types_yaml_file = "bin/organ_types.yaml"
 
 def get_uuids(organ_name_mapping: dict, organ: str):
     organ_code_mapping = {organ_name_mapping[key]: key for key in organ_name_mapping}
-    
+
     # Define the query payload based on organ
     if organ is None:
         query_payload = {
@@ -21,10 +21,10 @@ def get_uuids(organ_name_mapping: dict, organ: str):
                 "bool": {
                     "must": [
                         {"match": {"dataset_type": "RNAseq [Salmon]"}},
-                        {"match": {"data_access_level": "public"}}
+                        {"match": {"data_access_level": "public"}},
                     ]
                 }
-            }
+            },
         }
     else:
         query_payload = {
@@ -35,10 +35,10 @@ def get_uuids(organ_name_mapping: dict, organ: str):
                     "must": [
                         {"match": {"dataset_type": "RNAseq [Salmon]"}},
                         {"match": {"data_access_level": "public"}},
-                        {"match": {"origin_samples.organ": organ_code_mapping[organ]}}
+                        {"match": {"origin_samples.organ": organ_code_mapping[organ]}},
                     ]
                 }
-            }
+            },
         }
 
     # Make the request
@@ -49,17 +49,19 @@ def get_uuids(organ_name_mapping: dict, organ: str):
     # Handle a successful response
     if response.status_code == 200:
         return process_response(response)
-    
+
     # Handle 303 redirection
     elif response.status_code == 303:
-        redirection_url = response.text.strip()  # Get redirection URL from response body
+        redirection_url = (
+            response.text.strip()
+        )  # Get redirection URL from response body
         print("Following redirection URL: ", redirection_url)
-        
+
         # Make a request to the redirection URL
         redirection_response = requests.get(redirection_url)
         if redirection_response.status_code == 200:
             return process_response(redirection_response)
-    
+
     # Handle other error responses
     else:
         print(f"Error {response.status_code}: {response.text}")
@@ -72,7 +74,7 @@ def process_response(response):
     """
     data = response.json()
     hits = data.get("hits", {}).get("hits", [])
-    
+
     uuids = []
     hubmap_ids = []
     donor_metadata_list = []
@@ -82,7 +84,7 @@ def process_response(response):
         source = hit["_source"]
         uuids.append(source["uuid"])
         hubmap_ids.append(source["hubmap_id"])
-        
+
         # Attempt to extract donor metadata, if available
         donor_metadata = source.get("donor", {}).get("metadata", {})
         donor_metadata_list.append(extract_donor_metadata(donor_metadata))
@@ -101,35 +103,17 @@ def extract_donor_metadata(metadata):
         "weight": None,
         "bmi": None,
         "cause_of_death": None,
-        "race": None
+        "race": None,
     }
 
-    for item in metadata.get('organ_donor_data', []):
-        concept = item.get('grouping_concept_preferred_term')
-        value = item.get('data_value')
-        
-        if concept == "Age":
-            donor_info["age"] = value
-        elif concept == "Sex":
-            donor_info["sex"] = item.get('preferred_term')
-        elif concept == "Height":
-            donor_info["height"] = value
-        elif concept == "Weight":
-            donor_info["weight"] = value
-        elif concept == "Body mass index":
-            donor_info["bmi"] = value
-        elif concept == "Cause of death":
-            donor_info["cause_of_death"] = item.get('preferred_term')
-        elif concept == "Race":
-            donor_info["race"] = item.get('preferred_term')
+    for item in metadata.get("organ_donor_data", []):
+        concept = item.get("grouping_concept_preferred_term")
+        value = item.get("data_value")
 
-    for item in metadata.get('living_donor_data', []):
-        concept = item.get('grouping_concept_preferred_term')
-        value = item.get('data_value')
         if concept == "Age":
             donor_info["age"] = value
         elif concept == "Sex":
-            donor_info["sex"] = item.get('preferred_term')
+            donor_info["sex"] = item.get("preferred_term")
         elif concept == "Height":
             donor_info["height"] = value
         elif concept == "Weight":
@@ -137,13 +121,29 @@ def extract_donor_metadata(metadata):
         elif concept == "Body mass index":
             donor_info["bmi"] = value
         elif concept == "Cause of death":
-            donor_info["cause_of_death"] = item.get('preferred_term')
+            donor_info["cause_of_death"] = item.get("preferred_term")
         elif concept == "Race":
-            donor_info["race"] = item.get('preferred_term')
+            donor_info["race"] = item.get("preferred_term")
+
+    for item in metadata.get("living_donor_data", []):
+        concept = item.get("grouping_concept_preferred_term")
+        value = item.get("data_value")
+        if concept == "Age":
+            donor_info["age"] = value
+        elif concept == "Sex":
+            donor_info["sex"] = item.get("preferred_term")
+        elif concept == "Height":
+            donor_info["height"] = value
+        elif concept == "Weight":
+            donor_info["weight"] = value
+        elif concept == "Body mass index":
+            donor_info["bmi"] = value
+        elif concept == "Cause of death":
+            donor_info["cause_of_death"] = item.get("preferred_term")
+        elif concept == "Race":
+            donor_info["race"] = item.get("preferred_term")
 
     return donor_info
-
-
 
 
 def main(tissue_type: str):
@@ -161,7 +161,7 @@ def main(tissue_type: str):
     result_df = pd.concat([uuids_df, donor_metadata_df], axis=1)
     key_for_tissue = [key for key, value in organ_dict.items() if value == tissue_type]
     if key_for_tissue:
-            output_file_name = f"{key_for_tissue[0].lower()}.tsv"
+        output_file_name = f"{key_for_tissue[0].lower()}.tsv"
     else:
         output_file_name = "rna.tsv"
     print(result_df)

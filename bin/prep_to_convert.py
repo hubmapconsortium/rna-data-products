@@ -16,7 +16,7 @@ def main(processed_h5ad_file: Path):
         adata.rename_categories("predicted_label", unds_names)
 
     if "cell_type_counts" in adata.obs_keys():
-        cell_types=[]
+        cell_types = []
         for cell_type in adata.uns["cell_type_counts"]:
             cell_types.append(cell_type)
         for cell_type in cell_types:
@@ -26,7 +26,6 @@ def main(processed_h5ad_file: Path):
     # Save where required for use with anndata-to-ui
     os.mkdir("./processed_dir")
     adata.write_h5ad("./processed_dir/secondary_analysis.h5ad")
-
 
 
 if __name__ == "__main__":

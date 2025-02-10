@@ -20,16 +20,17 @@ def add_patient_metadata(obs, uuids_df):
     merged = merged.drop(columns=["Unnamed: 0"])
     merged = merged.fillna(np.nan)
     merged["age"] = pd.to_numeric(merged["age"])
-    obs = obs.loc[:, ~obs.columns.str.contains('^Unnamed')]
+    obs = obs.loc[:, ~obs.columns.str.contains("^Unnamed")]
     return merged
 
 
 def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
-    with open(data_product_metadata, 'r') as json_file:
+    with open(data_product_metadata, "r") as json_file:
         metadata = json.load(json_file)
     metadata["Processed Cell Type Counts"] = cell_counts
     metadata["Processed Total Cell Count"] = total_cell_count
     return metadata
+
 
 def add_file_sizes(data_product_metadata, raw_size, processed_size):
     data_product_metadata["Raw File Size"] = raw_size
@@ -39,12 +40,17 @@ def add_file_sizes(data_product_metadata, raw_size, processed_size):
         json.dump(data_product_metadata, outfile)
 
 
-def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tissue: str = None):
+def main(
+    raw_h5ad_file: Path,
+    data_product_metadata: Path,
+    uuids_tsv: Path,
+    tissue: str = None,
+):
     raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
-    
+
     raw_file_size = os.path.getsize(raw_h5ad_file)
 
     adata = anndata.read_h5ad(raw_h5ad_file)
@@ -56,7 +62,7 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
     adata.write_h5ad(f"{raw_output_file_name}.h5ad")
 
     uuid = str(adata.uns["uuid"])
-    
+
     print("Processing data product")
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
@@ -89,16 +95,22 @@ def main(raw_h5ad_file: Path, data_product_metadata: Path, uuids_tsv: Path, tiss
             cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
         ]
         adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
-        sc.tl.rank_genes_groups(adata_filter, "predicted_label", key_added="rank_genes_groups_cell_types")
+        sc.tl.rank_genes_groups(
+            adata_filter, "predicted_label", key_added="rank_genes_groups_cell_types"
+        )
         adata.uns = adata_filter.uns
-    
+
     if "predicted_label" in adata.obs_keys():
-        cell_type_counts = (adata.obs["predicted_label"].value_counts().to_dict())
+        cell_type_counts = adata.obs["predicted_label"].value_counts().to_dict()
         adata.uns["cell_type_counts"] = cell_type_counts
-        metadata = add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
+        metadata = add_cell_counts(
+            data_product_metadata, cell_type_counts, total_cell_count
+        )
     else:
         cell_type_counts = {}
-        metadata = add_cell_counts(data_product_metadata, cell_type_counts, total_cell_count)
+        metadata = add_cell_counts(
+            data_product_metadata, cell_type_counts, total_cell_count
+        )
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
