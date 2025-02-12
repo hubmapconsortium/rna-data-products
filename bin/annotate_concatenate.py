@@ -34,10 +34,8 @@ def get_tissue_type(dataset: str) -> str:
         for sample in data:
             direct_ancestor = sample.get("direct_ancestor", {})
             organ = direct_ancestor.get("organ")
-            print(organ)
             if organ:
                 organ_name = organ_dict[organ]
-                print(organ_name)
                 return organ_name["description"].replace(" (Left)", "").replace(" (Right)", "")
     return None
 
