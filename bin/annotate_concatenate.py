@@ -27,11 +27,17 @@ GENE_MAPPING_DIRECTORIES = [
 
 def get_tissue_type(dataset: str) -> str:
     organ_dict = yaml.load(open("/opt/organ_types.yaml"), Loader=yaml.BaseLoader)
-    organ_code = requests.get(
-        f"https://entity.api.hubmapconsortium.org/dataset/{dataset}/organs/"
-    )
-    organ_name = organ_dict[organ_code]
-    return organ_name.replace(" (Left)", "").replace(" (Right)", "")
+    url = f"https://entity.api.hubmapconsortium.org/datasets/{dataset}/samples"
+    response = response.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        for sample in data:
+            direct_ancestor = sample.get("direct_ancestor", {})
+            organ = direct_ancestor.get("organ")
+            if organ:
+                organ_name = organ_dict[organ]
+                return organ_name.replace(" (Left)", "").replace(" (Right)", "")
+    return None
 
 
 def convert_tissue_code(tissue_code):
