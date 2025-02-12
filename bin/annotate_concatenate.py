@@ -28,7 +28,7 @@ GENE_MAPPING_DIRECTORIES = [
 def get_tissue_type(dataset: str) -> str:
     organ_dict = yaml.load(open("/opt/organ_types.yaml"), Loader=yaml.BaseLoader)
     url = f"https://entity.api.hubmapconsortium.org/datasets/{dataset}/samples"
-    response = response.get(url)
+    response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         for sample in data:
