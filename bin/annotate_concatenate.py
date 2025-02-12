@@ -36,6 +36,7 @@ def get_tissue_type(dataset: str) -> str:
             organ = direct_ancestor.get("organ")
             if organ:
                 organ_name = organ_dict[organ]
+                print(organ_name)
                 return organ_name.replace(" (Left)", "").replace(" (Right)", "")
     return None
 
