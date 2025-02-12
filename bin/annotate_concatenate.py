@@ -38,7 +38,7 @@ def get_tissue_type(dataset: str) -> str:
             if organ:
                 organ_name = organ_dict[organ]
                 print(organ_name)
-                return organ_name.replace(" (Left)", "").replace(" (Right)", "")
+                return organ_name["description"].replace(" (Left)", "").replace(" (Right)", "")
     return None
 
 
