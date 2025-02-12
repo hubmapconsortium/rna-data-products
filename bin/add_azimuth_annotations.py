@@ -9,10 +9,7 @@ import anndata
 import numpy as np
 import pandas as pd
 
-CELL_MAPPING_DIRECTORIES = [
-    Path(__file__).parent.parent / "data",
-    Path("/opt/data")
-]
+CELL_MAPPING_DIRECTORIES = [Path(__file__).parent.parent / "data", Path("/opt/data")]
 
 
 def get_mapping_files():
@@ -21,6 +18,7 @@ def get_mapping_files():
         all_labels_file = directory / "all_labels.csv"
     return all_data_file, all_labels_file
 
+
 def read_and_concat_csvs(annotations_csv):
     csvs = [pd.read_csv(csv) for csv in annotations_csv]
     annotations = pd.concat(csvs)
@@ -28,15 +26,21 @@ def read_and_concat_csvs(annotations_csv):
 
 
 def add_raw_cell_counts(data_product_metadata, raw_cell_counts):
-    with open(data_product_metadata, 'r') as json_file:
+    with open(data_product_metadata, "r") as json_file:
         metadata = json.load(json_file)
     uuid = metadata["Data Product UUID"]
     metadata["Raw Cell Type Counts"] = raw_cell_counts
-    with open(f"{uuid}.json", 'w') as outfile:
+    with open(f"{uuid}.json", "w") as outfile:
         json.dump(metadata, outfile)
 
 
-def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_metadata, tissue_type: str=None):
+def main(
+    version_metadata,
+    raw_h5ad_file: Path,
+    annotations_csv,
+    data_product_metadata,
+    tissue_type: str = None,
+):
     ad = anndata.read_h5ad(raw_h5ad_file)
 
     # Load version metadata from JSON
@@ -55,23 +59,36 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             with open(all_data_file) as j:
                 all_data = json.loads(j.read())
             organ_metadata = all_data[organ]
-            
+
             # Read csv files
             annotations_df = read_and_concat_csvs(annotations_csv)
-            annotations_df = annotations_df.set_index('barcodes')
+            annotations_df = annotations_df.set_index("barcodes")
 
             # Prepare annotation names
-            azimuth_annotation_name = "predicted." + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
+            azimuth_annotation_name = (
+                "predicted."
+                + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
+            )
             azimuth_label = "azimuth_label"
             azimuth_id = "azimuth_id"
             cl_id = "predicted_CLID"
             standardized_label = "predicted_label"
             match = "cl_match_type"
             score = "prediction_score"
-            metadata["annotation_names"] = [azimuth_label, azimuth_id, cl_id, standardized_label, match, score]
+            metadata["annotation_names"] = [
+                azimuth_label,
+                azimuth_id,
+                cl_id,
+                standardized_label,
+                match,
+                score,
+            ]
 
             # Check for version mismatch
-            if metadata["azimuth_reference"]["version"] != organ_metadata["versions"]["azimuth_reference"]["version"]:
+            if (
+                metadata["azimuth_reference"]["version"]
+                != organ_metadata["versions"]["azimuth_reference"]["version"]
+            ):
                 warnings.warn(
                     f"The Azimuth reference version does not match the "
                     f"Azimuth reference version used to generate the mapping! "
@@ -81,16 +98,22 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
 
             # Load mapping data
             mapping_df = pd.read_csv(all_labels_file)
-            organ_annotation = organ + "_" + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
-            mapping_df = mapping_df.loc[mapping_df['Organ_Level'] == organ_annotation]
+            organ_annotation = (
+                organ
+                + "_"
+                + organ_metadata["versions"]["azimuth_reference"]["annotation_level"]
+            )
+            mapping_df = mapping_df.loc[mapping_df["Organ_Level"] == organ_annotation]
 
             # Create mapping dictionary
-            keys = mapping_df['A_L'].tolist()
-            a_id_map = mapping_df['A_ID'].tolist()
-            cl_id_map = mapping_df['CL_ID'].tolist()
-            standardized_label_map = mapping_df['Label'].tolist()
-            match_map = mapping_df['CL_Match'].tolist()
-            mapping_dict = dict(zip(keys, zip(a_id_map, cl_id_map, standardized_label_map, match_map)))
+            keys = mapping_df["A_L"].tolist()
+            a_id_map = mapping_df["A_ID"].tolist()
+            cl_id_map = mapping_df["CL_ID"].tolist()
+            standardized_label_map = mapping_df["Label"].tolist()
+            match_map = mapping_df["CL_Match"].tolist()
+            mapping_dict = dict(
+                zip(keys, zip(a_id_map, cl_id_map, standardized_label_map, match_map))
+            )
 
             # Initialize new columns in ad.obs
             ad.obs[azimuth_label] = ""
@@ -105,7 +128,9 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
                 if idx in annotations_df.index:
                     annotation = annotations_df.loc[idx, azimuth_annotation_name]
                     ad.obs.at[idx, azimuth_label] = annotation
-                    ad.obs.at[idx, score] = annotations_df.at[idx, azimuth_annotation_name + ".score"]
+                    ad.obs.at[idx, score] = annotations_df.at[
+                        idx, azimuth_annotation_name + ".score"
+                    ]
 
                     # Get the mapping data
                     mapped_values = mapping_dict.get(annotation.strip(), ["other"] * 4)
@@ -126,11 +151,13 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
             ad.obs[match].replace("", np.nan, inplace=True)
             ad.obs[score].replace("", np.nan, inplace=True)
             ad.obs[match] = ad.obs[match].astype(str)
-            ad.obs[score] = pd.to_numeric(ad.obs[score], errors='coerce')
+            ad.obs[score] = pd.to_numeric(ad.obs[score], errors="coerce")
 
             # Add additional metadata
             metadata["CLID"] = {"version": organ_metadata["versions"]["CL_version"]}
-            metadata["azimuth_to_CLID_mapping"] = {"version": organ_metadata["versions"]["mapping_version"]}
+            metadata["azimuth_to_CLID_mapping"] = {
+                "version": organ_metadata["versions"]["mapping_version"]
+            }
             for i, key in enumerate(organ_metadata["reviewers"]):
                 metadata[f"reviewer{i + 1}"] = key
             metadata["disclaimers"] = {"text": organ_metadata["disclaimer"]}
@@ -147,6 +174,7 @@ def main(version_metadata, raw_h5ad_file: Path, annotations_csv, data_product_me
     ad.uns["annotation_metadata"] = metadata
     ad.write(output_file_name)
 
+
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("--raw_h5ad_file", type=Path)
@@ -156,4 +184,10 @@ if __name__ == "__main__":
     p.add_argument("--data_product_metadata", type=str)
     args = p.parse_args()
 
-    main(args.metadata_json, args.raw_h5ad_file, args.annotations_csv, args.data_product_metadata, args.tissue)
+    main(
+        args.metadata_json,
+        args.raw_h5ad_file,
+        args.annotations_csv,
+        args.data_product_metadata,
+        args.tissue,
+    )

@@ -50,7 +50,13 @@ outputs:
   shinycell_dir:
     outputSource: make-shinycell/shinycell_dir
     type: Directory
-
+  arrow_directory:
+    outputSource: h5ad-to-arrow/output_directory
+    type: Directory
+  zarr_directory:
+    outputSource: anndata-to-ui/output_directory
+    type: Directory
+    
 steps:
 
   - id: annotate-concatenate
@@ -141,6 +147,30 @@ steps:
     run: steps/secondary-analysis.cwl
     label: "Runs secondary anaylsis on annotated and concatenated data"
 
+  - id: prep-to-convert
+    in:
+      - id: processed_h5ad_file
+        source: secondary-analysis/processed_h5ad_file
+    out:
+      - id: secondary_analysis_dir
+    run: steps/prep-to-convert.cwl
+    
+  - id: h5ad-to-arrow
+    in:
+      - id: input_directory
+        source: prep-to-convert/secondary_analysis_dir
+    out:
+      - id: output_directory
+    run: steps/h5ad-to-arrow.cwl
+
+  - id: anndata-to-ui
+    in:
+      - id: input_directory
+        source: prep-to-convert/secondary_analysis_dir
+    out:
+      - id: output_directory
+    run: steps/anndata-to-ui.cwl
+
   - id: make-shinycell
     in:
       - id: processed_h5ad_file
@@ -175,3 +205,19 @@ steps:
     
     run: steps/upload-to-s3.cwl
     label: "Uploads the pipeline outputs to s3 and ec2"
+
+  - id: upload-zarr-to-s3
+    in:
+     - id: zarr_dir
+       source: anndata-to-ui/output_directory
+     - id: metadata_file
+       source: secondary-analysis/final_data_product_metadata
+     - id: access_key_id
+       source: access_key_id
+     - id: secret_access_key
+       source: secret_access_key
+    out:
+     - finished_text
+ 
+    run: steps/upload-zarr-to-s3.cwl
+    label: "Uploads zarr to s3"

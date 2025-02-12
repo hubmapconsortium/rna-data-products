@@ -35,9 +35,9 @@ def get_tissue_type(dataset: str) -> str:
 
 
 def convert_tissue_code(tissue_code):
-    with open("/opt/organ_types.yaml", 'r') as f:
+    with open("/opt/organ_types.yaml", "r") as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
-    tissue_name = data.get(tissue_code)['description']
+    tissue_name = data.get(tissue_code)["description"]
     return tissue_name
 
 
@@ -78,7 +78,7 @@ def annotate_file(
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs["barcode"] = unfiltered_adata.obs.index
     unfiltered_copy.obs["dataset"] = data_set_dir
-    
+
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
     ]
@@ -170,7 +170,7 @@ def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_co
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
         "Dataset HBMIDs": hbmids,
-        "Raw Total Cell Count": cell_count
+        "Raw Total Cell Count": cell_count,
     }
     print("Writing metadata json")
     with open(f"{data_product_uuid}.json", "w") as outfile:
@@ -184,12 +184,13 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     hbmids_list = uuids_df["hubmap_id"].to_list()
     directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
     # Load files
-    file_pairs = [find_file_pairs(directory) for directory in directories if len(listdir(directory))>1]
-    print("Annotating objects")
-    adatas = [
-        annotate_file(file_pair[1], tissue, uuids_df)
-        for file_pair in file_pairs
+    file_pairs = [
+        find_file_pairs(directory)
+        for directory in directories
+        if len(listdir(directory)) > 1
     ]
+    print("Annotating objects")
+    adatas = [annotate_file(file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
     saved_var = adatas[0].var
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
@@ -204,7 +205,14 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     print(f"Splitting and writing {raw_output_file_name} into multiple files")
     split_and_save(adata, raw_output_file_name)
     total_cell_count = adata.obs.shape[0]
-    create_json(tissue, data_product_uuid, creation_time, uuids_list, hbmids_list, total_cell_count)
+    create_json(
+        tissue,
+        data_product_uuid,
+        creation_time,
+        uuids_list,
+        hbmids_list,
+        total_cell_count,
+    )
 
 
 if __name__ == "__main__":

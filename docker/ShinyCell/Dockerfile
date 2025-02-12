@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 library/r-base:4.4.0
+FROM library/r-base:4.4.0
 ENV DEBIAN_FRONTEND=non-interactive
 
 #RUN dpkg -r --force-all libglib2.0-0
@@ -11,7 +11,7 @@ RUN apt-get update \
     libncurses-dev \
     libfreetype6-dev \
     libfontconfig1-dev \
-    libglib2.0-0=2.80.2-2 \
+    libglib2.0-0=2.81.2-1 \
     libglib2.0-0t64 \
     libgirepository-2.0-0 \
     libglib2.0-dev-bin-linux \
@@ -45,6 +45,8 @@ RUN Rscript /opt/install_R_packages.R \
  && rm /opt/install_R_packages.R
 
 COPY bin/make_shinycell.R /opt
+COPY data/ensembl_to_symbol.json /opt
+
 RUN chmod -R +x /opt
 
 CMD ["/bin/bash"]

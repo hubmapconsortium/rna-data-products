@@ -7,14 +7,16 @@ import os
 
 
 def set_access_keys(access_key_id, secret_access_key):
-    os.system(f"aws configure set aws_access_key_id \"{access_key_id}\"")
-    os.system(f"aws configure set aws_secret_access_key \"{secret_access_key}\"")
+    os.system(f'aws configure set aws_access_key_id "{access_key_id}"')
+    os.system(f'aws configure set aws_secret_access_key "{secret_access_key}"')
 
 
 def upload_file_to_s3(local_file, uuid):
     bucket_path = f"s3://hubmap-data-products/{uuid}/"
     file_size = os.path.getsize(local_file)
-    os.system(f"aws s3 cp \"{local_file}\" \"{bucket_path}{local_file.name}\" --expected-size \"{file_size}\"")
+    os.system(
+        f'aws s3 cp "{local_file}" "{bucket_path}{local_file.name}" --expected-size "{file_size}"'
+    )
 
 
 def upload_files_to_s3(file_list, uuid):
@@ -29,7 +31,14 @@ def get_uuid(metadata_json):
     return uuid
 
 
-def main(raw_h5ad, processed_h5ad, umap_png, data_product_metadata, access_key_id, secret_access_key):
+def main(
+    raw_h5ad,
+    processed_h5ad,
+    umap_png,
+    data_product_metadata,
+    access_key_id,
+    secret_access_key,
+):
     set_access_keys(access_key_id, secret_access_key)
     uuid = get_uuid(data_product_metadata)
     files = [raw_h5ad, processed_h5ad, umap_png, data_product_metadata]
@@ -47,6 +56,13 @@ if __name__ == "__main__":
     p.add_argument("data_product_metadata", type=Path)
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
-    args= p.parse_args()
+    args = p.parse_args()
 
-    main(args.annotated_raw_h5ad_file, args.processed_h5ad_file, args.umap_png, args.data_product_metadata, args.access_key_id, args.secret_access_key)
+    main(
+        args.annotated_raw_h5ad_file,
+        args.processed_h5ad_file,
+        args.umap_png,
+        args.data_product_metadata,
+        args.access_key_id,
+        args.secret_access_key,
+    )
