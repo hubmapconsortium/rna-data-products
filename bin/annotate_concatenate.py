@@ -27,11 +27,17 @@ GENE_MAPPING_DIRECTORIES = [
 
 def get_tissue_type(dataset: str) -> str:
     organ_dict = yaml.load(open("/opt/organ_types.yaml"), Loader=yaml.BaseLoader)
-    organ_code = requests.get(
-        f"https://entity.api.hubmapconsortium.org/dataset/{dataset}/organs/"
-    )
-    organ_name = organ_dict[organ_code]
-    return organ_name.replace(" (Left)", "").replace(" (Right)", "")
+    url = f"https://entity.api.hubmapconsortium.org/datasets/{dataset}/samples"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        for sample in data:
+            direct_ancestor = sample.get("direct_ancestor", {})
+            organ = direct_ancestor.get("organ")
+            if organ:
+                organ_name = organ_dict[organ]
+                return organ_name["description"].replace(" (Left)", "").replace(" (Right)", "")
+    return None
 
 
 def convert_tissue_code(tissue_code):
@@ -68,7 +74,7 @@ def find_file_pairs(directory):
 
 
 def annotate_file(
-    unfiltered_file: Path, tissue_type: str, uuids_df: pd.DataFrame
+    unfiltered_file: Path, tissue_type: str = None
 ) -> Tuple[anndata.AnnData, anndata.AnnData]:
     # Get the directory
     data_set_dir = fspath(unfiltered_file.parent.stem)
@@ -159,14 +165,14 @@ def write_barcodes(barcodes, part_file_name):
     barcodes.to_csv(f"{part_file_name}_barcodes.tsv.gz", index=False)
 
 
-def create_json(tissue, data_product_uuid, creation_time, uuids, hbmids, cell_count):
+def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tissue = None):
     bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
     metadata = {
         "Data Product UUID": data_product_uuid,
-        "Tissue": convert_tissue_code(tissue),
+        "Tissue": convert_tissue_code(tissue) if tissue else None,
         "Assay": "rna",
-        "Raw URL": bucket_url + f"{tissue}_raw.h5ad",
-        "Processed URL": bucket_url + f"{tissue}_processed.h5ad",
+        "Raw URL": bucket_url + f"{tissue}_raw.h5ad" if tissue else bucket_url + "rna_raw.h5ad",
+        "Processed URL": bucket_url + f"{tissue}_processed.h5ad" if tissue else bucket_url + "rna_processed.h5ad",
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
         "Dataset HBMIDs": hbmids,
@@ -190,7 +196,7 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
         if len(listdir(directory)) > 1
     ]
     print("Annotating objects")
-    adatas = [annotate_file(file_pair[1], tissue, uuids_df) for file_pair in file_pairs]
+    adatas = [annotate_file(file_pair[1], tissue) for file_pair in file_pairs]
     saved_var = adatas[0].var
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
@@ -206,12 +212,12 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     split_and_save(adata, raw_output_file_name)
     total_cell_count = adata.obs.shape[0]
     create_json(
-        tissue,
         data_product_uuid,
         creation_time,
         uuids_list,
         hbmids_list,
         total_cell_count,
+        tissue
     )
 
 
