@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 from pathlib import Path
-
 import anndata
 import os
-
-# import s3fs
 import zarr
 import json
-
-# import awswrangler
 import awscli
 import shutil
 
@@ -33,10 +28,9 @@ def upload_dir_to_s3(local_dir: Path, uuid: str):
     dir_name = os.path.basename(local_dir)
     for root, dirs, files in os.walk(local_dir, topdown=False):
         for local_file in files:
-            # file_size = os.path.getsize(local_file)
             file_name = os.path.join(root, local_file)
             print(file_name)
-            file_size = os.path.getsize(file_name)  # (f"{local_dir}/{local_file}")
+            file_size = os.path.getsize(file_name)
             os.system(
                 f'aws s3 cp "{file_name}" "{bucket_path}{dir_name}/{file_name}" --expected-size "{file_size}"'
             )
@@ -45,10 +39,6 @@ def upload_dir_to_s3(local_dir: Path, uuid: str):
 def main(
     zarr_dir: Path, metadata_file: Path, access_key_id: str, secret_access_key: str
 ):
-    # stripped_filename = h5ad.removesuffix(".h5ad")
-    # adata = anndata.read_h5ad(h5ad)
-    # new_adata = anndata.AnnData(obs=adata.obs, obsm=adata.obsm, obsp=adata.obsp)
-    # new_adata.write_zarr(f"{stripped_filename}.zarr")
     with open(metadata_file, "r") as file:
         data = json.load(file)
     uuid = data["Data Product UUID"]
