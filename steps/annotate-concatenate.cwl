@@ -18,19 +18,13 @@ inputs:
     type: Directory
     doc: Paths to directory containing processed datasets
     inputBinding:
-      position: 2
-
-  uuids_file:
-    type: File
-    doc: Path to file containing uuids of all datasets to be indexed
-    inputBinding:
-      position: 3
+      position: 1
 
   tissue:
     type: string?
     doc: string description of tissue
     inputBinding:
-      position: 4
+      position: 2
 
 outputs:
   raw_h5ad_files:

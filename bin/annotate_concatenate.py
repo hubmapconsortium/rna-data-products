@@ -79,11 +79,11 @@ def annotate_file(
     # Get the directory
     data_set_dir = fspath(unfiltered_file.parent.stem)
     # And the tissue type
-    tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
+    # tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs["barcode"] = unfiltered_adata.obs.index
-    unfiltered_copy.obs["dataset"] = data_set_dir
+    unfiltered_copy.obs["data_product_uuid"] = data_set_dir
 
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
@@ -165,17 +165,16 @@ def write_barcodes(barcodes, part_file_name):
     barcodes.to_csv(f"{part_file_name}_barcodes.tsv.gz", index=False)
 
 
-def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tissue = None):
+def create_json(data_product_uuid, creation_time, uuids, cell_count, tissue = None):
     bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
     metadata = {
         "Data Product UUID": data_product_uuid,
-        "Tissue": convert_tissue_code(tissue) if tissue else None,
+        "Tissue": "Pan-Organ",
         "Assay": "rna",
         "Raw URL": bucket_url + f"{tissue}_raw.h5ad" if tissue else bucket_url + "rna_raw.h5ad",
         "Processed URL": bucket_url + f"{tissue}_processed.h5ad" if tissue else bucket_url + "rna_processed.h5ad",
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
-        "Dataset HBMIDs": hbmids,
         "Raw Total Cell Count": cell_count,
     }
     print("Writing metadata json")
@@ -183,26 +182,25 @@ def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tis
         json.dump(metadata, outfile)
 
 
-def main(data_directory: Path, uuids_file: Path, tissue: str = None):
+def main(data_directory: Path, tissue: str = None):
     raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
-    uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
-    uuids_list = uuids_df["uuid"].to_list()
-    hbmids_list = uuids_df["hubmap_id"].to_list()
-    directories = [data_directory / Path(uuid) for uuid in uuids_df["uuid"]]
+    # uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
+    uuids_list = [d.name for d in data_directory.iterdir() if d.is_dir()]
+    directories = [data_directory / Path(uuid) for uuid in uuids_list]
     # Load files
-    file_pairs = [
-        find_file_pairs(directory)
+    pattern = r"^[A-Z]{2}_raw\.h5ad$"
+    files = [
+        find_files(directory, pattern)
         for directory in directories
         if len(listdir(directory)) > 1
     ]
     print("Annotating objects")
-    adatas = [annotate_file(file_pair[1], tissue) for file_pair in file_pairs]
+    adatas = [annotate_file(file, tissue) for file in files]
     saved_var = adatas[0].var
     print("Concatenating objects")
     adata = anndata.concat(adatas, join="outer")
     creation_time = str(datetime.now())
     adata.uns["creation_date_time"] = creation_time
-    adata.uns["datasets"] = hbmids_list
     data_product_uuid = str(uuid.uuid4())
     adata.uns["uuid"] = data_product_uuid
     adata.var = saved_var
@@ -215,7 +213,6 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
         data_product_uuid,
         creation_time,
         uuids_list,
-        hbmids_list,
         total_cell_count,
         tissue
     )
@@ -224,7 +221,6 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("data_directory", type=Path)
-    p.add_argument("uuids_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
     p.add_argument("--enable_manhole", action="store_true")
 
@@ -235,4 +231,4 @@ if __name__ == "__main__":
 
         manhole.install(activate_on="USR1")
 
-    main(args.data_directory, args.uuids_file, args.tissue)
+    main(args.data_directory, args.tissue)
