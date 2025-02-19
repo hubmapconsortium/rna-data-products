@@ -11,7 +11,7 @@ RUN apt-get update \
     libncurses-dev \
     libfreetype6-dev \
     libfontconfig1-dev \
-    libglib2.0-0=2.80.2-2 \
+    libglib2.0-0=2.81.2-1 \
     libglib2.0-0t64 \
     libgirepository-2.0-0 \
     libglib2.0-dev-bin-linux \
