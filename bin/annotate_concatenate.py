@@ -60,7 +60,7 @@ def find_files(directory, patterns):
     for dirpath, _, filenames in walk(directory):
         for filename in filenames:
             for pattern in patterns:
-                if pattern.search(filename):
+                if pattern.match(filename):
                     filepath = Path(dirpath) / filename
                     print(f"Found file: {filepath}")  # Debugging print
                     return filepath
