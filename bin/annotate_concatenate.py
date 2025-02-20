@@ -67,11 +67,9 @@ def find_files(directory, patterns):
 
 
 def find_file_pairs(directory):
-    filtered_patterns = ["cluster_marker_genes.h5ad", "secondary_analysis.h5ad"]
-    unfiltered_patterns = ["out.h5ad", "expr.h5ad"]
-    filtered_file = find_files(directory, filtered_patterns)
+    unfiltered_patterns = [re.compile(r".*_raw\.h5ad$")]
     unfiltered_file = find_files(directory, unfiltered_patterns)
-    return filtered_file, unfiltered_file
+    return unfiltered_file
 
 
 def annotate_file(
@@ -177,9 +175,8 @@ def main(data_directory: Path, tissue: str = None):
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
     print(directories)
     # Load files
-    pattern = re.compile(r".*_raw\.h5ad$")
     files = [
-        find_files(directory, pattern)
+        find_file_pairs(directory)
         for directory in directories
         if len(listdir(directory)) > 1
     ]
