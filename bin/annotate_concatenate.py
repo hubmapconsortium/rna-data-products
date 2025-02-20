@@ -75,23 +75,9 @@ def find_file_pairs(directory):
 
 def annotate_file(
     unfiltered_file: Path, tissue_type: str = None
-) -> Tuple[anndata.AnnData, anndata.AnnData]:
-    # Get the directory
-    data_set_dir = fspath(unfiltered_file.parent.stem)
-    # And the tissue type
-    # tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
+) -> Tuple[anndata.AnnData]:
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
-    unfiltered_copy.obs["barcode"] = unfiltered_adata.obs.index
-    unfiltered_copy.obs["data_product_uuid"] = data_set_dir
-
-    cell_ids_list = [
-        "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
-    ]
-    unfiltered_copy.obs["cell_id"] = pd.Series(
-        cell_ids_list, index=unfiltered_copy.obs.index, dtype=str
-    )
-    unfiltered_copy.obs.set_index("cell_id", drop=True, inplace=True)
     unfiltered_copy = map_gene_ids(unfiltered_copy)
     return unfiltered_copy
 
@@ -209,8 +195,8 @@ def main(data_directory: Path, tissue: str = None):
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
     adata.write(f"{raw_output_file_name}.h5ad")
-    print(f"Splitting and writing {raw_output_file_name} into multiple files")
-    split_and_save(adata, raw_output_file_name)
+    # print(f"Splitting and writing {raw_output_file_name} into multiple files")
+    # split_and_save(adata, raw_output_file_name)
     total_cell_count = adata.obs.shape[0]
     create_json(
         data_product_uuid,
