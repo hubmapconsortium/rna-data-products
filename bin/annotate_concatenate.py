@@ -13,6 +13,7 @@ import gzip
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import re
 import requests
 import scipy.io
 import scipy.sparse
@@ -176,7 +177,7 @@ def main(data_directory: Path, tissue: str = None):
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
     print(directories)
     # Load files
-    pattern = r"^[A-Z]{2}_raw\.h5ad$"
+    pattern = re.compile(r".*_raw\.h5ad$")
     files = [
         find_files(directory, pattern)
         for directory in directories
