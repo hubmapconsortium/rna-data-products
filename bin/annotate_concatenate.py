@@ -188,6 +188,7 @@ def main(data_directory: Path, tissue: str = None):
     uuids_list = [d.name for d in data_directory.iterdir() if d.is_dir()]
     print(uuids_list)
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
+    print(directories)
     # Load files
     pattern = r"^[A-Z]{2}_raw\.h5ad$"
     files = [
