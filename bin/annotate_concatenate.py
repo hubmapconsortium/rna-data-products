@@ -174,7 +174,8 @@ def main(data_directory: Path, tissue: str = None):
     print(uuids_list)
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
     print(directories)
-    listdir(directories[0])
+    this_file = listdir(directories[0])
+    print(this_file)
     # Load files
     files = [
         find_file_pairs(directory)
