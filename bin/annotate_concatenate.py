@@ -4,7 +4,6 @@ import json
 from argparse import ArgumentParser
 from collections import defaultdict
 from datetime import datetime
-from os import fspath, walk, listdir
 from pathlib import Path
 from typing import Dict, Tuple
 
@@ -12,6 +11,7 @@ import anndata
 import gzip
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import re
 import requests
@@ -56,21 +56,12 @@ def get_inverted_gene_dict():
     return inverted_dict
 
 
-def find_files(directory, patterns):
-    for dirpath, _, filenames in walk(directory):
-        for filename in filenames:
-            for pattern in patterns:
-                if pattern.match(filename):
-                    filepath = Path(dirpath) / filename
-                    print(f"Found file: {filepath}")  # Debugging print
-                    return filepath
-
-
-
-def find_file_pairs(directory):
-    unfiltered_patterns = [re.compile(r".*_raw\.h5ad$")]
-    unfiltered_file = find_files(directory, unfiltered_patterns)
-    return unfiltered_file
+def find_raw_h5ad(directory):
+    pattern = re.compile(r'^[A-Z]{2}_raw\.h5ad$', re.IGNORECASE)
+    
+    for filename in os.listdir(directory):
+        if pattern.match(filename):
+            return os.path.join(directory, filename)
 
 
 def annotate_file(
@@ -175,13 +166,11 @@ def main(data_directory: Path, tissue: str = None):
     print(uuids_list)
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
     print(directories)
-    this_file = listdir(directories[0])
+    this_file = os.listdir(directories[0])
     print(this_file)
     # Load files
     files = [
-        find_file_pairs(directory)
-        for directory in directories
-        if len(listdir(directory)) > 1
+        find_raw_h5ad(directory) for directory in directories
     ]
     print(files)
     print("Annotating objects")
