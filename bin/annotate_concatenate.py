@@ -186,6 +186,7 @@ def main(data_directory: Path, tissue: str = None):
     raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     # uuids_df = pd.read_csv(uuids_file, sep="\t", dtype=str)
     uuids_list = [d.name for d in data_directory.iterdir() if d.is_dir()]
+    print(uuids_list)
     directories = [data_directory / Path(uuid) for uuid in uuids_list]
     # Load files
     pattern = r"^[A-Z]{2}_raw\.h5ad$"
@@ -194,6 +195,7 @@ def main(data_directory: Path, tissue: str = None):
         for directory in directories
         if len(listdir(directory)) > 1
     ]
+    print(files)
     print("Annotating objects")
     adatas = [annotate_file(file, tissue) for file in files]
     saved_var = adatas[0].var
