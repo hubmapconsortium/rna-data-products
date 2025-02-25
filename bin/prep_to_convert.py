@@ -15,7 +15,7 @@ def main(processed_h5ad_file: Path):
             unds_names.append(name.replace(" ", "_"))
         adata.rename_categories("predicted_label", unds_names)
 
-    if "cell_type_counts" in adata.obs_keys():
+    if "cell_type_counts" in adata.uns_keys():
         cell_types = []
         for cell_type in adata.uns["cell_type_counts"]:
             cell_types.append(cell_type)
