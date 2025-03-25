@@ -42,26 +42,26 @@ def add_file_sizes(data_product_metadata, raw_size, processed_size):
 
 def main(
     raw_h5ad_file: Path,
-    data_product_metadata: Path,
-    uuids_tsv: Path,
-    tissue: str = None,
+    # data_product_metadata: Path,
+    # uuids_tsv: Path,
+    # tissue: str = None,
 ):
-    raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
+    # raw_output_file_name = f"{tissue}_raw" if tissue else "rna_raw"
     processed_output_file_name = (
-        f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
+        f"SK_processed.h5ad"
     )
 
     raw_file_size = os.path.getsize(raw_h5ad_file)
 
     adata = anndata.read_h5ad(raw_h5ad_file)
-    dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
-    adata.obs = annotated_obs
-    print("Writing raw data product")
-    print(adata.obs_keys())
-    adata.write_h5ad(f"{raw_output_file_name}.h5ad")
+    # dataset_info = pd.read_csv(uuids_tsv, sep="\t")
+    # annotated_obs = add_patient_metadata(adata.obs, dataset_info)
+    # adata.obs = annotated_obs
+    # print("Writing raw data product")
+    # print(adata.obs_keys())
+    # adata.write_h5ad(f"{raw_output_file_name}.h5ad")
 
-    uuid = str(adata.uns["uuid"])
+    # uuid = str(adata.uns["uuid"])
 
     print("Processing data product")
     adata.var_names_make_unique()
@@ -103,38 +103,38 @@ def main(
     if "predicted_label" in adata.obs_keys():
         cell_type_counts = adata.obs["predicted_label"].value_counts().to_dict()
         adata.uns["cell_type_counts"] = cell_type_counts
-        metadata = add_cell_counts(
-            data_product_metadata, cell_type_counts, total_cell_count
-        )
+        # metadata = add_cell_counts(
+        #     data_product_metadata, cell_type_counts, total_cell_count
+        # )
     else:
         cell_type_counts = {}
-        metadata = add_cell_counts(
-            data_product_metadata, cell_type_counts, total_cell_count
-        )
+        # metadata = add_cell_counts(
+        #     data_product_metadata, cell_type_counts, total_cell_count
+        # )
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
-        plt.savefig(f"{uuid}.png" if tissue else "rna.png")
+        plt.savefig(f"skin.png")
 
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
-    processed_file_size = os.path.getsize(processed_output_file_name)
-    add_file_sizes(metadata, raw_file_size, processed_file_size)
+    # processed_file_size = os.path.getsize(processed_output_file_name)
+    # add_file_sizes(metadata, raw_file_size, processed_file_size)
 
 
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
-    p.add_argument("tissue", type=str, nargs="?")
-    p.add_argument("uuids_file")
-    p.add_argument("data_product_metadata", type=Path)
-    p.add_argument("--enable_manhole", action="store_true")
+    # p.add_argument("tissue", type=str, nargs="?")
+    # p.add_argument("uuids_file")
+    # p.add_argument("data_product_metadata", type=Path)
+    # p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
 
-    if args.enable_manhole:
-        import manhole
+    # if args.enable_manhole:
+    #     import manhole
 
-        manhole.install(activate_on="USR1")
+    #     manhole.install(activate_on="USR1")
 
-    main(args.raw_h5ad_file, args.data_product_metadata, args.uuids_file, args.tissue)
+    main(args.raw_h5ad_file)
