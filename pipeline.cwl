@@ -36,16 +36,16 @@ inputs:
 outputs:
 
   final_raw_h5ad_file:
-    outputSource: secondary-analysis/final_raw_h5ad_file
+    outputSource: secondary-analysis-pt1/final_raw_h5ad_file
     type: File
   processed_h5ad_file:
-    outputSource: secondary-analysis/processed_h5ad_file
+    outputSource: secondary-analysis-pt2/processed_h5ad_file
     type: File
   umap_png:
-    outputSource: secondary-analysis/umap_png
+    outputSource: secondary-analysis-pt2/umap_png
     type: File
   final_data_product_metadata:
-    outputSource: secondary-analysis/final_data_product_metadata
+    outputSource: secondary-analysis-pt2/final_data_product_metadata
     type: File
   shinycell_dir:
     outputSource: make-shinycell/shinycell_dir
@@ -128,7 +128,7 @@ steps:
       - updated_data_product_metadata
     run: steps/add-azimuth-annotations.cwl
     
-  - id: secondary-analysis
+  - id: secondary-analysis-pt1
     in:
       - id: annotated_raw_h5ad_file
         source: add-azimuth-annotations/annotated_raw_h5ad_file
@@ -141,16 +141,40 @@ steps:
     
     out:
       - final_raw_h5ad_file
+      - partially_processed_h5ad_file
+      - updated_data_product_metadata
+    run: steps/secondary-analysis-pt1.cwl
+    label: "Runs secondary anaylsis on annotated and concatenated data"
+  
+  - id: sketching
+    in:
+      - id: partially_processed_h5ad_file
+        source: secondary-analysis-pt1/partially_processed_h5ad_file
+    
+    out:
+      - sketched_h5ad_file
+    run: steps/sketching.cwl
+  
+  - id: secondary-analysis-pt2
+    in:
+      - id: sketched_h5ad_file
+        source: sketching/sketched_h5ad_file
+      - id: tissue
+        source: tissue
+      - id: updated_data_product_metadata
+        source: secondary-analysis-pt1/updated_data_product_metadata
+    
+    out:
       - processed_h5ad_file
       - umap_png
       - final_data_product_metadata
-    run: steps/secondary-analysis.cwl
+    run: steps/secondary-analysis-pt2.cwl
     label: "Runs secondary anaylsis on annotated and concatenated data"
 
   - id: prep-to-convert
     in:
       - id: processed_h5ad_file
-        source: secondary-analysis/processed_h5ad_file
+        source: secondary-analysis-pt2/processed_h5ad_file
     out:
       - id: secondary_analysis_dir
     run: steps/prep-to-convert.cwl
@@ -174,11 +198,11 @@ steps:
   - id: make-shinycell
     in:
       - id: processed_h5ad_file
-        source: secondary-analysis/processed_h5ad_file
+        source: secondary-analysis-pt2/processed_h5ad_file
       - id: tissue
         source: tissue
       - id: metadata_file
-        source: secondary-analysis/final_data_product_metadata
+        source: secondary-analysis-pt2/final_data_product_metadata
     out:
       - id: shinycell_dir
 
@@ -188,13 +212,13 @@ steps:
   - id: upload-to-s3
     in:
       - id: final_raw_h5ad_file
-        source: secondary-analysis/final_raw_h5ad_file
+        source: secondary-analysis-pt1/final_raw_h5ad_file
       - id: processed_h5ad_file
-        source: secondary-analysis/processed_h5ad_file
+        source: secondary-analysis-pt2/processed_h5ad_file
       - id: umap_png
-        source: secondary-analysis/umap_png
+        source: secondary-analysis-pt2/umap_png
       - id: final_data_product_metadata
-        source: secondary-analysis/final_data_product_metadata
+        source: secondary-analysis-pt2/final_data_product_metadata
       - id: access_key_id
         source: access_key_id
       - id: secret_access_key
@@ -211,7 +235,7 @@ steps:
      - id: zarr_dir
        source: anndata-to-ui/output_directory
      - id: metadata_file
-       source: secondary-analysis/final_data_product_metadata
+       source: secondary-analysis-pt2/final_data_product_metadata
      - id: access_key_id
        source: access_key_id
      - id: secret_access_key
