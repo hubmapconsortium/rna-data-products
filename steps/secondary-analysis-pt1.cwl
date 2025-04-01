@@ -5,7 +5,7 @@ label: Perform secondary analysis on raw data product
 hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-python
-baseCommand: /opt/secondary_analysis.py
+baseCommand: /opt/secondary_analysis_pt1.py
 
 inputs: 
     annotated_raw_h5ad_file:
@@ -39,20 +39,14 @@ outputs:
             glob: "*_raw.h5ad"
         doc: annotated h5ad file with additional obs columns
 
-    processed_h5ad_file:
+    partially_processed_h5ad_file:
         type: File
         outputBinding:
             glob: "*_processed.h5ad"
         doc: h5ad file with secondary analysis processing
     
-    umap_png:
-        type: File
-        outputBinding:
-            glob: "*.png"
-        doc: umap png
-    
-    final_data_product_metadata:
+    updated_data_product_metadata:
         type: File
         outputBinding:
             glob: "*.json"
-        doc: final data product metadata with all cell type counts
+        doc: data product metadata
