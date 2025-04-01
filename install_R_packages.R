@@ -31,8 +31,8 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 }
 remotes::install_github("mojaveazure/seurat-disk")
 
-#library(reticulate)
-#reticulate::py_install("anndata")
+# library(reticulate)
+# reticulate::py_install("anndata")
 
 install.packages("devtools", repos = "http://cran.rstudio.com/")
 
