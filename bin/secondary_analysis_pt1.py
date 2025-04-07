@@ -49,8 +49,8 @@ def main(
 
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
-    adata.obs = annotated_obs
+    # annotated_obs = add_patient_metadata(adata.obs, dataset_info)
+    # adata.obs = annotated_obs
     print("Writing raw data product")
     print(adata.obs_keys())
     adata.write(raw_output_file_name)
