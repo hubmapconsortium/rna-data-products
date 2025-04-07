@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
+from scipy.stats import median_abs_deviation
 
 import anndata
 import json
@@ -25,6 +26,14 @@ def add_patient_metadata(obs, uuids_df):
 
 def add_file_sizes(data_product_metadata, raw_size):
     data_product_metadata["Raw File Size"] = raw_size
+
+
+def is_outlier(adata, metric: str, nmads: int):
+    M = adata.obs[metric]
+    outlier = (M < np.median(M) - nmads * median_abs_deviation(M)) | (
+        np.median(M) + nmads * median_abs_deviation(M) < M
+    )
+    return outlier
 
 
 def main(
@@ -58,7 +67,31 @@ def main(
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
 
-    sc.pp.filter_cells(adata, min_genes=200)
+    # try new cell filtering method
+    # mitochondrial genes
+    adata.var["mt"] = adata.var["hugo_symbol"].str.startswith("MT-")
+    adata.var["mt"] = adata.var["mt"].fillna(False)
+    # ribosomal genes
+    adata.var["ribo"] = adata.var["hugo_symbol"].str.startswith(("RPS", "RPL"))
+    adata.var["ribo"] = adata.var["ribo"].fillna(False)
+    # hemoglobin genes.
+    adata.var["hb"] = adata.var["hugo_symbol"].str.contains("^HB[^(P)]")
+    adata.var["hb"] = adata.var["hb"].fillna(False)
+    sc.pp.calculate_qc_metrics(
+        adata, qc_vars=["mt", "ribo", "hb"], inplace=True, percent_top=[20], log1p=True
+    )
+    adata.obs["outlier"] = (
+        is_outlier(adata, "log1p_total_counts", 5)
+        | is_outlier(adata, "log1p_n_genes_by_counts", 5)
+        | is_outlier(adata, "pct_counts_in_top_20_genes", 5)
+    )
+    adata.obs["mt_outlier"] = is_outlier(adata, "pct_counts_mt", 3) | (
+        adata.obs["pct_counts_mt"] > 8
+    )
+    print(f"Total number of cells: {adata.n_obs}")
+    adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
+    print(f"Number of cells after filtering of low quality cells: {adata.n_obs}")  
+
     sc.pp.filter_genes(adata, min_cells=3)
 
     adata.obs["n_counts"] = adata.X.sum(axis=1)
