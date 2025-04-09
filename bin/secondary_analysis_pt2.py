@@ -63,7 +63,7 @@ def main(h5ad_file: Path, tissue: str=None):
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
-        plt.savefig(f"{uuid}.png" if tissue else "rna.png")
+        plt.savefig(f"skin_leiden_umap.png")
 
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
