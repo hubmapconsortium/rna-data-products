@@ -19,12 +19,6 @@ inputs:
         doc: optional tissue type
         inputBinding:
             position: 1
-    
-    updated_data_product_metadata:
-        type: File
-        doc: data product metadata
-        inputBinding: 
-            position: 2
 
 outputs:
     processed_h5ad_file:
@@ -39,8 +33,3 @@ outputs:
             glob: "*.png"
         doc: umap png
     
-    final_data_product_metadata:
-        type: File
-        outputBinding:
-            glob: "*.json"
-        doc: final data product metadata with all cell type counts
