@@ -63,7 +63,7 @@ if __name__ == "__main__":
     p.add_argument("tissue", type=str, nargs="?")
     # p.add_argument("uuids_file")
     # p.add_argument("data_product_metadata")
-    # p.add_argument("--enable_manhole", action="store_true")
+    p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
 
