@@ -12,34 +12,30 @@ organ_types_yaml_file = "bin/organ_types.yaml"
 def get_uuids(organ_name_mapping: dict, organ: str):
     organ_code_mapping = {organ_name_mapping[key]: key for key in organ_name_mapping}
 
-    # Define the query payload based on organ
-    if organ is None:
-        query_payload = {
-            "from": 0,
-            "size": 10000,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
-                        {"match": {"data_access_level": "public"}},
-                    ]
-                }
-            },
+    must_conditions = [
+        {"match": {"dataset_type": "RNAseq [Salmon]"}},
+        {"match": {"data_access_level": "public"}},
+    ]
+
+    if organ:
+        must_conditions.append({"match": {"origin_samples.organ": organ_code_mapping[organ]}})
+
+    query_payload = {
+        "from": 0,
+        "size": 10000,
+        "query": {
+            "bool": {
+                "must": must_conditions,
+                "must_not": [
+                    {
+                        "exists": {
+                            "field": "next_revision_uuid"
+                        }
+                    }
+                ]
+            }
         }
-    else:
-        query_payload = {
-            "from": 0,
-            "size": 10000,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"dataset_type": "RNAseq [Salmon]"}},
-                        {"match": {"data_access_level": "public"}},
-                        {"match": {"origin_samples.organ": organ_code_mapping[organ]}},
-                    ]
-                }
-            },
-        }
+    }
 
     # Make the request
     url = "https://search.api.hubmapconsortium.org/v3/search"
