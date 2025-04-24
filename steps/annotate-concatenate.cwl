@@ -1,70 +1,106 @@
-cwlVersion: v1.0
-class: CommandLineTool
-label: Annotates each h5ad file with dataset and tissue type, then concatenates
+#!/usr/bin/env cwl-runner
 
-hints:
-  DockerRequirement:
-    dockerPull: hubmap/rna-data-products-python
-baseCommand: /opt/annotate_concatenate.py
+class: Workflow
+cwlVersion: v1.0
+label: Pipeline for evaluating differential expression of genes across datasets
+
+requirements:
+  ScatterFeatureRequirement: {}
 
 inputs:
+
   enable_manhole:
     label: "Whether to enable remote debugging via 'manhole'"
     type: boolean?
-    inputBinding:
-      position: 0
 
   data_directory:
+    label: "Path to directory containing processed RNA datasets"
     type: Directory
-    doc: Paths to directory containing processed datasets
-    inputBinding:
-      position: 2
 
   uuids_file:
+    label: "Path to a file containing a list of uuids for the dataset to be indexed"
     type: File
-    doc: Path to file containing uuids of all datasets to be indexed
-    inputBinding:
-      position: 3
 
   tissue:
+    label: "String description of tissue type"
     type: string?
-    doc: string description of tissue
-    inputBinding:
-      position: 4
 
 outputs:
-  raw_h5ad_files:
-    type: File[]
-    outputBinding:
-      glob: "*_raw_*.h5ad"
-    doc: h5ad files containing raw expression data
 
-  raw_h5ad_file:
+  annotated_raw_h5ad_file:
+    outputSource: add-azimuth-annotations/final_raw_h5ad_file
     type: File
-    outputBinding:
-      glob: "*_raw.h5ad"
-    doc: h5ad file containing raw expression data
-
-  data_product_metadata:
+  updated_data_product_metadata:
+    outputSource: add-azimuth-annotations/final_data_product_metadata
     type: File
-    outputBinding: 
-      glob: "*.json"
-    doc: metadata for web app
+    
+steps:
 
-  matrix_files:
-    type: File[]
-    outputBinding:
-      glob: "*_counts_matrix.mtx.gz"
-    doc: binary counts matrix
+  - id: concatenate
+    in:
+      - id: enable_manhole
+        source: enable_manhole
+      - id: data_directory
+        source: data_directory
+      - id: uuids_file
+        source: uuids_file
+      - id: tissue
+        source: tissue
 
-  features_files:
-    type: File[]
-    outputBinding:
-      glob: "*_features.tsv.gz"
-    doc: plain text features
-  
-  barcodes_files: 
-    type: File[]
-    outputBinding:
-      glob: "*_barcodes.tsv.gz"
-    doc: plain text barcodes
+    out:
+      - raw_h5ad_files
+      - raw_h5ad_file
+      - data_product_metadata
+      - matrix_files
+      - features_files
+      - barcodes_files
+    run: steps/annotate-concatenate/concatenate.cwl
+    label: "Annotates and concatenates h5ad data files in directory"
+
+  - id: mtx-to-seurat
+    scatter: [matrix_files, features_files, barcodes_files]
+    scatterMethod: dotproduct
+    in:
+      - id: matrix_files
+        source: annotate-concatenate/matrix_files
+      - id: features_files
+        source: annotate-concatenate/features_files
+      - id: barcodes_files
+        source: annotate-concatenate/barcodes_files
+    
+    out:
+      [seurat_rds]
+    run: steps/annotate-concatenate/mtx-to-seurat.cwl
+
+  - id: azimuth-annotate
+    scatter: [seurat_rds]
+    scatterMethod: dotproduct
+    in: 
+      - id: seurat_rds
+        source: mtx-to-seurat/seurat_rds
+      - id: tissue
+        source: tissue
+    
+    out:
+      - annotations_csv
+      - metadata_json
+    run: steps/annotate-concatenate/azimuth-annotate.cwl
+    label: "Runs azimuth on the file created in the previous step"
+    
+  - id: add-azimuth-annotations
+    in:
+      - id: raw_h5ad_file
+        source: annotate-concatenate/raw_h5ad_file
+      - id: tissue
+        source: tissue            
+      - id: metadata_json
+        source: azimuth-annotate/metadata_json
+      - id: annotations_csv
+        source: azimuth-annotate/annotations_csv
+      - id: data_product_metadata
+        source: annotate-concatenate/data_product_metadata
+
+    out:
+      - annotated_raw_h5ad_file
+      - updated_data_product_metadata
+    run: steps/annotate-concatenate/add-azimuth-annotations.cwl
