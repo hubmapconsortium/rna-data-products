@@ -42,9 +42,7 @@ def main(
     with open(metadata_file, "r") as file:
         data = json.load(file)
     uuid = data["Data Product UUID"]
-    zarr_file = shutil.copy(
-        f"{zarr_dir}/secondary_analysis.zarr.zip", "./zarr/secondary_analysis.zarr.zip"
-    )
+    zarr_file = f"{zarr_dir}/secondary_analysis.zarr.zip"
     set_access_keys(access_key_id, secret_access_key)
     upload_dir_to_s3(zarr_file, uuid)
     f = open("finished_zarr.txt", "w")
