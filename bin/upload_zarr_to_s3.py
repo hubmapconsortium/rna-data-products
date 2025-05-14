@@ -44,7 +44,7 @@ def main(
     uuid = data["Data Product UUID"]
     zarr_file = f"{zarr_dir}/secondary_analysis.zarr.zip"
     set_access_keys(access_key_id, secret_access_key)
-    upload_dir_to_s3(zarr_file, uuid)
+    upload_file_to_s3(zarr_file, uuid)
     f = open("finished_zarr.txt", "w")
     f.write("zarr uploaded")
     f.close()
