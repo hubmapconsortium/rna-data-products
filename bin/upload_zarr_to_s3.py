@@ -43,7 +43,7 @@ def main(
         data = json.load(file)
     uuid = data["Data Product UUID"]
     zarr_file = shutil.copytree(
-        f"{zarr_dir}/secondary_analysis.zarr", "./zarr/secondary_analysis.zarr"
+        f"{zarr_dir}/secondary_analysis.zarr.zip", "./zarr/secondary_analysis.zarr.zip"
     )
     zarr.consolidate_metadata(zarr_file)
     set_access_keys(access_key_id, secret_access_key)
