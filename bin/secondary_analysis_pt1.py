@@ -54,6 +54,10 @@ def main(
     sc.pp.pca(adata, n_comps=50)
     sc.tl.embedding_density(adata, basis="pca")  
 
+    raw_adata = adata.raw.to_adata()
+    raw_adata.var = raw_adata.var.drop(columns=["_index"])
+    adata.raw = raw_adata
+
     adata.write(processed_output_file_name)
 
 
