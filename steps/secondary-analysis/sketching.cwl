@@ -8,7 +8,7 @@ hints:
 baseCommand: /opt/sketching.py
 
 inputs: 
-    partially_processed_h5ad_file:
+    annotated_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:

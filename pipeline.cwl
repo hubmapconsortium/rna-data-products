@@ -6,6 +6,7 @@ label: Pipeline for evaluating differential expression of genes across datasets
 
 requirements:
   ScatterFeatureRequirement: {}
+  SubworkflowFeatureRequirement: {}
 
 inputs:
 
@@ -25,41 +26,31 @@ inputs:
     label: "String description of tissue type"
     type: string?
   
-  access_key_id:
-    label: "AWS access key id"
-    type: string
-  
-  secret_access_key: 
-    label: "AWS secret access key"
-    type: string
+  organism:
+    type: string?
+    default: "human"
 
 outputs:
 
-  final_raw_h5ad_file:
-    outputSource: secondary-analysis-pt1/final_raw_h5ad_file
+  final_raw_h5mu_file:
+    outputSource: secondary-analysis/final_raw_h5mu_file
     type: File
-  processed_h5ad_file:
-    outputSource: secondary-analysis-pt2/processed_h5ad_file
+  processed_h5mu_file:
+    outputSource: secondary-analysis/processed_h5mu_file
     type: File
   umap_png:
-    outputSource: secondary-analysis-pt2/umap_png
+    outputSource: secondary-analysis/umap_png
     type: File
   final_data_product_metadata:
-    outputSource: secondary-analysis-pt2/final_data_product_metadata
+    outputSource: secondary-analysis/final_data_product_metadata
     type: File
   shinycell_dir:
     outputSource: make-shinycell/shinycell_dir
     type: Directory
-  arrow_directory:
-    outputSource: h5ad-to-arrow/output_directory
-    type: Directory
-  zarr_directory:
-    outputSource: anndata-to-ui/output_directory
-    type: Directory
     
 steps:
 
-  - id: annotate-concatenate
+  - id: concatenate
     in:
       - id: enable_manhole
         source: enable_manhole
@@ -71,177 +62,41 @@ steps:
         source: tissue
 
     out:
-      - raw_h5ad_files
       - raw_h5ad_file
       - data_product_metadata
-      - matrix_files
-      - features_files
-      - barcodes_files
-    run: steps/annotate-concatenate.cwl
-    label: "Annotates and concatenates h5ad data files in directory"
-  
-  - id: mtx-to-seurat
-    scatter: [matrix_files, features_files, barcodes_files]
-    scatterMethod: dotproduct
-    in:
-      - id: matrix_files
-        source: annotate-concatenate/matrix_files
-      - id: features_files
-        source: annotate-concatenate/features_files
-      - id: barcodes_files
-        source: annotate-concatenate/barcodes_files
-    
-    out:
-      [seurat_rds]
-    run: steps/mtx-to-seurat.cwl
+    run: steps/concatenate.cwl
+    label: "Concatenates h5ad data files in directory"
 
-  - id: azimuth-annotate
-    scatter: [seurat_rds]
-    scatterMethod: dotproduct
-    in: 
-      - id: seurat_rds
-        source: mtx-to-seurat/seurat_rds
-      - id: tissue
-        source: tissue
-    
-    out:
-      - annotations_csv
-      - metadata_json
-    run: steps/azimuth-annotate.cwl
-    label: "Runs azimuth on the file created in the previous step"
-    
-  - id: add-azimuth-annotations
+  - id: secondary-analysis
     in:
       - id: raw_h5ad_file
-        source: annotate-concatenate/raw_h5ad_file
-      - id: tissue
-        source: tissue            
-      - id: metadata_json
-        source: azimuth-annotate/metadata_json
-      - id: annotations_csv
-        source: azimuth-annotate/annotations_csv
-      - id: data_product_metadata
-        source: annotate-concatenate/data_product_metadata
-
-    out:
-      - annotated_raw_h5ad_file
-      - updated_data_product_metadata
-    run: steps/add-azimuth-annotations.cwl
-    
-  - id: secondary-analysis-pt1
-    in:
-      - id: annotated_raw_h5ad_file
-        source: add-azimuth-annotations/annotated_raw_h5ad_file
+        source: concatenate/raw_h5ad_file
       - id: tissue
         source: tissue
       - id: uuids_file
         source: uuids_file
-      - id: updated_data_product_metadata
-        source: add-azimuth-annotations/updated_data_product_metadata
+      - id: data_product_metadata
+        source: concatenate/data_product_metadata
     
     out:
-      - final_raw_h5ad_file
-      - partially_processed_h5ad_file
-      - updated_data_product_metadata
-    run: steps/secondary-analysis-pt1.cwl
-    label: "Runs secondary anaylsis on annotated and concatenated data"
-  
-  - id: sketching
-    in:
-      - id: partially_processed_h5ad_file
-        source: secondary-analysis-pt1/partially_processed_h5ad_file
-    
-    out:
-      - sketched_h5ad_file
-    run: steps/sketching.cwl
-  
-  - id: secondary-analysis-pt2
-    in:
-      - id: sketched_h5ad_file
-        source: sketching/sketched_h5ad_file
-      - id: tissue
-        source: tissue
-      - id: updated_data_product_metadata
-        source: secondary-analysis-pt1/updated_data_product_metadata
-    
-    out:
+      - final_raw_h5mu_file
       - processed_h5ad_file
+      - processed_h5mu_file
       - umap_png
       - final_data_product_metadata
-    run: steps/secondary-analysis-pt2.cwl
-    label: "Runs secondary anaylsis on annotated and concatenated data"
-
-  - id: prep-to-convert
-    in:
-      - id: processed_h5ad_file
-        source: secondary-analysis-pt2/processed_h5ad_file
-    out:
-      - id: secondary_analysis_dir
-    run: steps/prep-to-convert.cwl
-    
-  - id: h5ad-to-arrow
-    in:
-      - id: input_directory
-        source: prep-to-convert/secondary_analysis_dir
-    out:
-      - id: output_directory
-    run: steps/h5ad-to-arrow.cwl
-
-  - id: anndata-to-ui
-    in:
-      - id: input_directory
-        source: prep-to-convert/secondary_analysis_dir
-    out:
-      - id: output_directory
-    run: steps/anndata-to-ui.cwl
+    run: steps/secondary-analysis.cwl
+    label: "Runs secondary anaylsis on annotated and concatenated data and annotates with pan organ Azimuth"
 
   - id: make-shinycell
     in:
       - id: processed_h5ad_file
-        source: secondary-analysis-pt2/processed_h5ad_file
+        source: secondary-analysis/processed_h5ad_file
       - id: tissue
         source: tissue
       - id: metadata_file
-        source: secondary-analysis-pt2/final_data_product_metadata
+        source: secondary-analysis/final_data_product_metadata
     out:
-      - id: shinycell_dir
+      - shinycell_dir
 
     run: steps/make_shinycell.cwl
     label: "Creates the shiny cell app for the data product"
-
-  - id: upload-to-s3
-    in:
-      - id: final_raw_h5ad_file
-        source: secondary-analysis-pt1/final_raw_h5ad_file
-      - id: processed_h5ad_file
-        source: secondary-analysis-pt2/processed_h5ad_file
-      - id: umap_png
-        source: secondary-analysis-pt2/umap_png
-      - id: final_data_product_metadata
-        source: secondary-analysis-pt2/final_data_product_metadata
-      - id: access_key_id
-        source: access_key_id
-      - id: secret_access_key
-        source: secret_access_key
-    
-    out:
-      - finished_text
-    
-    run: steps/upload-to-s3.cwl
-    label: "Uploads the pipeline outputs to s3 and ec2"
-
-  - id: upload-zarr-to-s3
-    in:
-     - id: zarr_dir
-       source: anndata-to-ui/output_directory
-     - id: metadata_file
-       source: secondary-analysis-pt2/final_data_product_metadata
-     - id: access_key_id
-       source: access_key_id
-     - id: secret_access_key
-       source: secret_access_key
-    out:
-     - finished_text
- 
-    run: steps/upload-zarr-to-s3.cwl
-    label: "Uploads zarr to s3"

@@ -6,12 +6,11 @@ from pathlib import Path
 
 import anndata
 import json
-import matplotlib.pyplot as plt
+import mudata as md
 import numpy as np
 import os
 import pandas as pd
 import scanpy as sc
-import uuid
 
 def add_patient_metadata(obs, uuids_df):
     merged = uuids_df.merge(obs, left_on="uuid", right_on="dataset", how="inner")
@@ -27,13 +26,20 @@ def add_file_sizes(data_product_metadata, raw_size):
     data_product_metadata["Raw File Size"] = raw_size
 
 
+def add_cell_counts(data_product_metadata, total_cell_count):
+    with open(data_product_metadata, "r") as json_file:
+        metadata = json.load(json_file)
+    metadata["Raw Total Cell Count"] = total_cell_count
+    return metadata
+
+
 def main(
     raw_h5ad_file: Path,
     uuids_tsv: Path,
     data_product_metadata: Path,
     tissue: str = None,
 ):
-    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
+    raw_output_file_name = f"{tissue}_raw.h5mu" if tissue else "rna_raw.h5mu"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
@@ -41,15 +47,24 @@ def main(
     adata = anndata.read_h5ad(raw_h5ad_file)
     dataset_info = pd.read_csv(uuids_tsv, sep="\t")
     annotated_obs = add_patient_metadata(adata.obs, dataset_info)
+    total_cell_count = adata.obs.shape[0]
+    metadata = add_cell_counts(
+        data_product_metadata, total_cell_count
+    )
     adata.obs = annotated_obs
-    print("Writing raw data product")
-    print(adata.obs_keys())
-    adata.write(raw_output_file_name)
 
-    raw_file_size = os.path.getsize(raw_output_file_name)
     with open(data_product_metadata, "r") as infile:
         metadata = json.load(infile)
     uuid = metadata["Data Product UUID"]
+    # Convert to MuData and add Obj x Analyte requirements
+    adata.obs['object_type'] = 'cell'
+    adata.uns['analyte_class'] = 'RNA'
+    adata.uns['protocol'] = 'https://github.com/hubmapconsortium/rna-data-products.git'
+    mdata = md.MuData({f"{uuid}_raw": adata})
+    mdata.uns['epic_type '] = ['analyses']
+    mdata.write(raw_output_file_name)
+
+    raw_file_size = os.path.getsize(raw_output_file_name)
     add_file_sizes(metadata, raw_file_size)
     with open(f"{uuid}.json", "w") as outfile:
         json.dump(metadata, outfile)

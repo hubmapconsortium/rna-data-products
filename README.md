@@ -16,4 +16,4 @@ Check the list of python packages in `docker/requirements.txt`
 ### Step 3 
 `cwltool pipeline.cwl --[data_directory] --[uuids_file] --[tissue_type] --[access_key_id] --[secret_access_key]`
 ### Step 4
-`python3 upload_to_ec2.py [umap_png] [data_product_metadata] [ssh_key]`
+`python3 upload_to_ec2.py [umap_png] [data_product_metadata] [shiny_cell_dir] [ssh_key]`

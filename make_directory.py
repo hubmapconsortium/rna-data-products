@@ -19,11 +19,9 @@ def find_files(directory, patterns):
 
 
 def find_file_pairs(directory):
-    filtered_patterns = ["secondary_analysis.h5ad"]
     unfiltered_patterns = ["expr.h5ad"]
-    filtered_file = find_files(directory, filtered_patterns)
     unfiltered_file = find_files(directory, unfiltered_patterns)
-    return filtered_file, unfiltered_file
+    return unfiltered_file
 
 
 def get_input_directory(data_directory, uuid):
@@ -52,17 +50,16 @@ def main(data_directory: Path, uuids_file: Path, tissue: str):
             parents=True, exist_ok=True
         )  # Create UUID-specific directory
         input_directory = get_input_directory(data_directory, uuid)
-        input_files = find_file_pairs(input_directory)
-        if input_files == (None, None):
+        input_file = find_file_pairs(input_directory)
+        if input_file == None:
             print("No input files in: ", input_directory)
             continue
         print("Input directory:", input_directory)
-        print("Input files:", input_files)
-        for input_file in input_files:
-            check_call(
-                f"cp '{input_file}' '{h5ads_directory}/{input_file.name}'",
-                shell=True,
-            )
+        print("Input file:", input_file)
+        check_call(
+            f"cp '{input_file}' '{h5ads_directory}/{input_file.name}'",
+            shell=True,
+        )
 
 
 if __name__ == "__main__":
