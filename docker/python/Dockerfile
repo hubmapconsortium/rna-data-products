@@ -3,8 +3,6 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 ## System packages
-# I'm used to using `apt` but it complains that it doesn't have a stable
-#   command-line interface, so let's use `apt-get` instead
 RUN apt-get update \
  && apt-get -y install \
     autoconf \
@@ -13,7 +11,6 @@ RUN apt-get update \
     flex \
     git \
     libfreetype6-dev \
-    libigraph0-dev \
     libxml2-dev \
     libtool \
     m4 \
@@ -22,7 +19,7 @@ RUN apt-get update \
     python3-dev \
     python3-pip \
     zlib1g-dev \
-    awscli \
+    curl \
  && rm -rf /var/cache/apt/*
 
 ## Python packages
