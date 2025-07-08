@@ -1,0 +1,8 @@
+name: rna-data-products
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.8,<3.10
+  - pip
+  - sclkme
