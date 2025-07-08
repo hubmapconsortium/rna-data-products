@@ -28,7 +28,6 @@ RUN conda env create -f /opt/environment.yml
 ENV CONDA_ENV_NAME=sketching
 ENV CONDA_PREFIX=/opt/conda/envs/${CONDA_ENV_NAME}
 ENV PATH=${CONDA_PREFIX}/bin:$PATH
-ENV LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:$LD_LIBRARY_PATH
 
 COPY bin/ /opt
 
