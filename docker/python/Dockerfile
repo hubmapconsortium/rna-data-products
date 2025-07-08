@@ -1,8 +1,7 @@
-FROM ubuntu:24.04
+FROM continuumio/miniconda3:25.3.1-1
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-## System packages
 RUN apt-get update \
  && apt-get -y install \
     autoconf \
@@ -23,15 +22,16 @@ RUN apt-get update \
  && rm -rf /var/cache/apt/*
 
 ## Python packages
-COPY docker/python/requirements.txt /opt/requirements.txt
-RUN pip3 install -r /opt/requirements.txt \
- && rm -rf /root/.cache/pip
+COPY docker/python/environment.yml /opt/environment.yml
+RUN conda env create -f /opt/environment.yml
 
-RUN mkdir /root/.ssh
+ENV CONDA_ENV_NAME=rna-data-products
+ENV CONDA_PREFIX=/opt/conda/envs/${CONDA_ENV_NAME}
+ENV PATH=${CONDA_PREFIX}/bin:$PATH
+ENV LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:$LD_LIBRARY_PATH
 
-COPY bin /opt
-COPY data /opt/data
-
-RUN chmod -R +x /opt
+COPY bin/ /opt
 
 WORKDIR /opt
+
+CMD ["/bin/bash"]
