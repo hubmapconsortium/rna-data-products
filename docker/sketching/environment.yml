@@ -1,4 +1,4 @@
-name: rna-data-products
+name: sketching
 channels:
   - conda-forge
   - defaults
