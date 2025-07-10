@@ -82,7 +82,7 @@ def annotate_file(
     tissue_type = tissue_type if tissue_type else get_tissue_type(data_set_dir)
     unfiltered_adata = anndata.read_h5ad(unfiltered_file)
     unfiltered_copy = unfiltered_adata.copy()
-    unfiltered_copy.obs["barcode"] = unfiltered_adata.obs.index
+    unfiltered_copy.obs["original_obs_id"] = unfiltered_adata.obs.index
     unfiltered_copy.obs["dataset"] = data_set_dir
 
     cell_ids_list = [
@@ -171,8 +171,8 @@ def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tis
         "Data Product UUID": data_product_uuid,
         "Tissue": convert_tissue_code(tissue) if tissue else None,
         "Assay": "rna",
-        "Raw URL": bucket_url + f"{tissue}_raw.h5ad" if tissue else bucket_url + "rna_raw.h5ad",
-        "Processed URL": bucket_url + f"{tissue}_processed.h5ad" if tissue else bucket_url + "rna_processed.h5ad",
+        "Raw URL": bucket_url + f"{tissue}_raw.h5ad" if tissue else bucket_url + "rna_raw.h5mu",
+        "Processed URL": bucket_url + f"{tissue}_processed.h5ad" if tissue else bucket_url + "rna_processed.h5mu",
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
         "Dataset HBMIDs": hbmids,

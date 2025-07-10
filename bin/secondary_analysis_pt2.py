@@ -7,6 +7,7 @@ from pathlib import Path
 import anndata
 import json
 import matplotlib.pyplot as plt
+import muon as mu
 import numpy as np
 import os
 import pandas as pd
@@ -32,7 +33,7 @@ def add_file_sizes(data_product_metadata, processed_size):
 def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     adata = anndata.read_h5ad(h5ad_file)
     processed_output_file_name = (
-        f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
+        f"{tissue}_processed.h5mu" if tissue else "rna_processed.h5mu"
     )
     total_cell_count = adata.obs.shape[0]
     with open(data_product_metadata, "r") as infile:
@@ -73,6 +74,20 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
         plt.savefig(f"{uuid}.png" if tissue else "rna.png")
+
+    # Convert to MuData and add Obj x Analyte requirements
+    if 'annotation' in adata.obsm_keys():
+        adata.obsm['annotation']['leiden'] = adata.obs['leiden']
+    else:
+        adata.obsm['annotation'] = pd.DataFrame(adata.obs['leiden'])
+    adata.obsm['leiden'] = pd.DataFrame(adata.obs['leiden'])
+    adata.uns['leiden'] = {
+        'label': 'Leiden Clusters',
+        'mechanism': 'machine',
+        'protocol': "10.1186/s13059-017-1382-0",
+    }
+    mdata = mu.MuData({f"{uuid}_processed": adata})
+    mdata.uns["epic_type "] = {'analyses', 'annotations'}
 
     print(f"Writing {processed_output_file_name}")
     adata.write(processed_output_file_name)
