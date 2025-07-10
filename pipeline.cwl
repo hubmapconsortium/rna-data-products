@@ -54,7 +54,7 @@ outputs:
     outputSource: portal-vis/arrow_directory
     type: Directory
   zarr_store:
-    outputSource: portal-vis/zarr_directory
+    outputSource: portal-vis/zarr_store
     type: Directory
     
 steps:
