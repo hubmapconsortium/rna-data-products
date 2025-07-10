@@ -13,7 +13,7 @@ inputs:
     inputBinding:
         position: 6
 outputs:
-  output_directory:
-    type: Directory
+  zarr_store:
+    type: File
     outputBinding:
       glob: anndata-zarr

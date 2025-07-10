@@ -13,7 +13,7 @@ inputs:
     inputBinding:
         position: 6
 outputs:
-  output_directory:
+  arrow_directory:
     type: Directory
     outputBinding:
       glob: output

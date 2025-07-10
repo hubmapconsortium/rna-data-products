@@ -32,17 +32,23 @@ inputs:
         inputBinding:
             position: 3
     
+    zarr_store:
+        type: File
+        doc: Zipped zarr store of h5ad
+        inputBinding:
+            position: 4
+    
     access_key_id:
         type: string?
         doc: AWS access key id
         inputBinding:
-            position: 4
+            position: 5
     
     secret_access_key:
         type: string
         doc: AWS secret access key
         inputBinding:
-            position: 5
+            position: 6
 
 outputs: 
     finished_text:

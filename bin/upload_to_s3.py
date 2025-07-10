@@ -36,12 +36,13 @@ def main(
     processed_h5ad,
     umap_png,
     data_product_metadata,
+    zarr_file,
     access_key_id,
     secret_access_key,
 ):
     set_access_keys(access_key_id, secret_access_key)
     uuid = get_uuid(data_product_metadata)
-    files = [raw_h5ad, processed_h5ad, umap_png, data_product_metadata]
+    files = [raw_h5ad, processed_h5ad, umap_png, data_product_metadata, zarr_file]
     upload_files_to_s3(files, uuid)
     f = open("finished.txt", "w")
     f.write("cwl wants an output file for this step")
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     p.add_argument("processed_h5ad_file", type=Path)
     p.add_argument("umap_png", type=Path)
     p.add_argument("data_product_metadata", type=Path)
+    p.add_argument("zarr_file", type=str)
     p.add_argument("access_key_id", type=str)
     p.add_argument("secret_access_key", type=str)
     args = p.parse_args()
@@ -63,6 +65,7 @@ if __name__ == "__main__":
         args.processed_h5ad_file,
         args.umap_png,
         args.data_product_metadata,
+        args.zarr_file,
         args.access_key_id,
         args.secret_access_key,
     )
