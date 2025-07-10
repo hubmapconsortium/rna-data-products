@@ -8,15 +8,15 @@ hints:
 baseCommand: /opt/upload_to_s3.py
 
 inputs:
-    final_raw_h5ad_file:
+    final_raw_h5mu_file:
         type: File
-        doc: The raw h5ad file
+        doc: The raw h5mu file
         inputBinding:
             position: 0
 
-    processed_h5ad_file:
+    processed_h5mu_file:
         type: File
-        doc: The processed h5ad file
+        doc: The processed h5mu file
         inputBinding: 
             position: 1
 

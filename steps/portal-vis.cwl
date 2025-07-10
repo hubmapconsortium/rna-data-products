@@ -46,5 +46,5 @@ steps:
       - id: input_directory
         source: prep-to-convert/secondary_analysis_dir
     out:
-      - id: zarr_directory
+      - id: zarr_store
     run: steps/anndata-to-ui.cwl

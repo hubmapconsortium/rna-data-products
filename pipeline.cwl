@@ -85,7 +85,7 @@ steps:
       - id: uuids_file
         source: uuids_file
       - id: updated_data_product_metadata
-        source: add-azimuth-annotations/updated_data_product_metadata
+        source: annotate-concatenate/updated_data_product_metadata
     
     out:
       - final_raw_h5mu_file
@@ -101,6 +101,7 @@ steps:
       - id: processed_h5ad_file
         source: secondary-analysis/processed_h5ad_file
     out:
+      - arrow_directory
       - zarr_store
     run: steps/portal-vis.cwl
 
@@ -120,14 +121,14 @@ steps:
 
   - id: upload-to-s3
     in:
-      - id: final_raw_h5ad_file
-        source: secondary-analysis-pt1/final_raw_h5ad_file
-      - id: processed_h5ad_file
-        source: secondary-analysis-pt2/processed_h5ad_file
+      - id: final_raw_h5mu_file
+        source: secondary-analysis/final_raw_h5mu_file
+      - id: processed_h5mu_file
+        source: secondary-analysis/processed_h5mu_file
       - id: umap_png
-        source: secondary-analysis-pt2/umap_png
+        source: secondary-analysis/umap_png
       - id: final_data_product_metadata
-        source: secondary-analysis-pt2/final_data_product_metadata
+        source: secondary-analysis/final_data_product_metadata
       - id: zarr_store
         source: portal-vis/zarr_store
       - id: access_key_id
