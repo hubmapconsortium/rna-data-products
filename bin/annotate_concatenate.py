@@ -10,7 +10,6 @@ from typing import Dict, Tuple
 
 import anndata
 import gzip
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
