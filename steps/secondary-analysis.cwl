@@ -60,7 +60,7 @@ steps:
       - final_raw_h5mu_file
       - partially_processed_h5ad_file
       - updated_data_product_metadata
-    run: steps/secondary-analysis/secondary-analysis-pt1.cwl
+    run: secondary-analysis/secondary-analysis-pt1.cwl
     label: "Runs secondary anaylsis on annotated and concatenated data"
   
   - id: sketching
@@ -70,7 +70,7 @@ steps:
     
     out:
       - sketched_h5ad_file
-    run: steps/secondary-analysis/sketching.cwl
+    run: secondary-analysis/sketching.cwl
   
   - id: secondary-analysis-pt2
     in:
@@ -86,5 +86,5 @@ steps:
       - processed_h5mu_file
       - umap_png
       - final_data_product_metadata
-    run: steps/secondary-analysis/secondary-analysis-pt2.cwl
+    run: secondary-analysis/secondary-analysis-pt2.cwl
     label: "Runs secondary anaylsis on annotated and concatenated data"

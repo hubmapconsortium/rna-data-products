@@ -36,7 +36,7 @@ outputs:
     
 steps:
 
-  - id: annotate-concatenate
+  - id: concatenate
     in:
       - id: enable_manhole
         source: enable_manhole
@@ -54,7 +54,7 @@ steps:
       - matrix_files
       - features_files
       - barcodes_files
-    run: steps/annotate-concatenate/concatenate.cwl
+    run: annotate-concatenate/concatenate.cwl
     label: "Concatenates h5ad data files in directory"
   
   - id: mtx-to-seurat
@@ -70,7 +70,7 @@ steps:
     
     out:
       [seurat_rds]
-    run: steps/annotate-concatenate/mtx-to-seurat.cwl
+    run: annotate-concatenate/mtx-to-seurat.cwl
 
   - id: azimuth-annotate
     scatter: [seurat_rds]
@@ -84,7 +84,7 @@ steps:
     out:
       - annotations_csv
       - metadata_json
-    run: steps/annotate-concatenate/azimuth-annotate.cwl
+    run: annotate-concatenate/azimuth-annotate.cwl
     label: "Runs azimuth on the file created in the previous step"
     
   - id: add-azimuth-annotations
@@ -103,4 +103,4 @@ steps:
     out:
       - annotated_raw_h5ad_file
       - updated_data_product_metadata
-    run: steps/annotate-concatenate/add-azimuth-annotations.cwl
+    run: annotate-concatenate/add-azimuth-annotations.cwl

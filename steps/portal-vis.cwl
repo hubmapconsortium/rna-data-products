@@ -31,7 +31,7 @@ steps:
         source: secondary-analysis-pt2/processed_h5ad_file
     out:
       - id: secondary_analysis_dir
-    run: steps/prep-to-convert.cwl
+    run: portal-vis/prep-to-convert.cwl
     
   - id: h5ad-to-arrow
     in:
@@ -39,7 +39,7 @@ steps:
         source: prep-to-convert/secondary_analysis_dir
     out:
       - id: arrow_directory
-    run: steps/h5ad-to-arrow.cwl
+    run: portal-vis/h5ad-to-arrow.cwl
 
   - id: anndata-to-ui
     in:
@@ -47,4 +47,4 @@ steps:
         source: prep-to-convert/secondary_analysis_dir
     out:
       - id: zarr_store
-    run: steps/anndata-to-ui.cwl
+    run: portal-vis/anndata-to-ui.cwl
