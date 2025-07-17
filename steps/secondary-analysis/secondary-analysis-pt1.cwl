@@ -19,18 +19,7 @@ inputs:
         doc: optional tissue type
         inputBinding:
             position: 1
-    
-    uuids_file:
-        type: File
-        doc: File with UUIDs and patient metadata
-        inputBinding:
-            position: 2
-    
-    updated_data_product_metadata:
-        type: File
-        doc: data product metadata
-        inputBinding: 
-            position: 3
+
 
 outputs:
     final_raw_h5mu_file:
@@ -45,8 +34,3 @@ outputs:
             glob: "*_processed.h5ad"
         doc: h5ad file with secondary analysis processing
     
-    updated_data_product_metadata:
-        type: File
-        outputBinding:
-            glob: "*.json"
-        doc: data product metadata

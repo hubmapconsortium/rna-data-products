@@ -36,8 +36,8 @@ def add_cell_counts(data_product_metadata, cell_counts, total_cell_count):
 
 def main(
     raw_h5ad_file: Path,
-    uuids_tsv: Path,
-    data_product_metadata: Path,
+    # uuids_tsv: Path,
+    # data_product_metadata: Path,
     tissue: str = None,
 ):
     raw_output_file_name = f"{tissue}_raw.h5mu" if tissue else "rna_raw.h5mu"
@@ -46,15 +46,12 @@ def main(
     )
 
     adata = anndata.read_h5ad(raw_h5ad_file)
-    dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
-    total_cell_count = adata.obs.shape[0]
-    cell_type_counts = adata.obs["final_level_labels"].value_counts().to_dict()
-    adata.uns["cell_type_counts"] = cell_type_counts
-    metadata = add_cell_counts(
-        data_product_metadata, cell_type_counts, total_cell_count
-    )
-    adata.obs = annotated_obs
+    # dataset_info = pd.read_csv(uuids_tsv, sep="\t")
+    # annotated_obs = add_patient_metadata(adata.obs, dataset_info)
+    # adata.obs = annotated_obs
+    # print("Writing raw data product")
+    # print(adata.obs_keys())
+    # adata.write(raw_output_file_name)
 
     with open(data_product_metadata, "r") as infile:
         metadata = json.load(infile)
@@ -106,8 +103,8 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
-    p.add_argument("uuids_file")
-    p.add_argument("data_product_metadata")
+    # p.add_argument("uuids_file")
+    # p.add_argument("data_product_metadata")
     p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
@@ -116,4 +113,4 @@ if __name__ == "__main__":
         import manhole
         manhole.install(activate_on="USR1")
 
-    main(args.raw_h5ad_file, args.uuids_file, args.data_product_metadata, args.tissue)
+    main(args.raw_h5ad_file, args.tissue)
