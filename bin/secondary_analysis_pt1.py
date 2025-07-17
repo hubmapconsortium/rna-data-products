@@ -29,30 +29,30 @@ def add_file_sizes(data_product_metadata, raw_size):
 
 def main(
     raw_h5ad_file: Path,
-    uuids_tsv: Path,
-    data_product_metadata: Path,
+    # uuids_tsv: Path,
+    # data_product_metadata: Path,
     tissue: str = None,
 ):
-    raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
+    # raw_output_file_name = f"{tissue}_raw.h5ad" if tissue else "rna_raw.h5ad"
     processed_output_file_name = (
         f"{tissue}_processed.h5ad" if tissue else "rna_processed.h5ad"
     )
 
     adata = anndata.read_h5ad(raw_h5ad_file)
-    dataset_info = pd.read_csv(uuids_tsv, sep="\t")
-    annotated_obs = add_patient_metadata(adata.obs, dataset_info)
-    adata.obs = annotated_obs
-    print("Writing raw data product")
-    print(adata.obs_keys())
-    adata.write(raw_output_file_name)
+    # dataset_info = pd.read_csv(uuids_tsv, sep="\t")
+    # annotated_obs = add_patient_metadata(adata.obs, dataset_info)
+    # adata.obs = annotated_obs
+    # print("Writing raw data product")
+    # print(adata.obs_keys())
+    # adata.write(raw_output_file_name)
 
-    raw_file_size = os.path.getsize(raw_output_file_name)
-    with open(data_product_metadata, "r") as infile:
-        metadata = json.load(infile)
-    uuid = metadata["Data Product UUID"]
-    add_file_sizes(metadata, raw_file_size)
-    with open(f"{uuid}.json", "w") as outfile:
-        json.dump(metadata, outfile)
+    # raw_file_size = os.path.getsize(raw_output_file_name)
+    # with open(data_product_metadata, "r") as infile:
+    #     metadata = json.load(infile)
+    # uuid = metadata["Data Product UUID"]
+    # add_file_sizes(metadata, raw_file_size)
+    # with open(f"{uuid}.json", "w") as outfile:
+    #     json.dump(metadata, outfile)
 
     print("Processing data product")
     adata.var_names_make_unique()
@@ -78,8 +78,8 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("raw_h5ad_file", type=Path)
     p.add_argument("tissue", type=str, nargs="?")
-    p.add_argument("uuids_file")
-    p.add_argument("data_product_metadata")
+    # p.add_argument("uuids_file")
+    # p.add_argument("data_product_metadata")
     p.add_argument("--enable_manhole", action="store_true")
 
     args = p.parse_args()
@@ -88,4 +88,4 @@ if __name__ == "__main__":
         import manhole
         manhole.install(activate_on="USR1")
 
-    main(args.raw_h5ad_file, args.uuids_file, args.data_product_metadata, args.tissue)
+    main(args.raw_h5ad_file, args.tissue)
