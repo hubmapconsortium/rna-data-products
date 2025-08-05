@@ -25,13 +25,9 @@ inputs:
     label: "String description of tissue type"
     type: string?
   
-  access_key_id:
-    label: "AWS access key id"
-    type: string
-  
-  secret_access_key: 
-    label: "AWS secret access key"
-    type: string
+  organism:
+    type: string?
+    default: "human"
 
 outputs:
 
@@ -69,6 +65,8 @@ steps:
         source: uuids_file
       - id: tissue
         source: tissue
+      - id: organism
+        source: organism
 
     out:
       - annotated_raw_h5ad_file
@@ -119,7 +117,7 @@ steps:
     run: steps/make_shinycell.cwl
     label: "Creates the shiny cell app for the data product"
 
-  - id: upload-to-s3
+  - id: upload-to-vm
     in:
       - id: final_raw_h5mu_file
         source: secondary-analysis/final_raw_h5mu_file
@@ -131,13 +129,9 @@ steps:
         source: secondary-analysis/final_data_product_metadata
       - id: zarr_store
         source: portal-vis/zarr_store
-      - id: access_key_id
-        source: access_key_id
-      - id: secret_access_key
-        source: secret_access_key
     
     out:
       - finished_text
     
-    run: steps/upload-to-s3.cwl
-    label: "Uploads the pipeline outputs to s3"
+    run: steps/upload-to-vm.cwl
+    label: "Uploads the pipeline outputs to vm"

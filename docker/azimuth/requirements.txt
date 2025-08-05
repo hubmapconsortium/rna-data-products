@@ -1,0 +1,5 @@
+muon
+scanpy
+squidpy
+
+git+https://github.com/satijalab/panhumanpy.git

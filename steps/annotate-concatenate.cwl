@@ -25,6 +25,10 @@ inputs:
     label: "String description of tissue type"
     type: string?
 
+  organism:
+    type: string?
+    default: "human"
+
 outputs:
 
   annotated_raw_h5ad_file:
@@ -48,59 +52,22 @@ steps:
         source: tissue
 
     out:
-      - raw_h5ad_files
       - raw_h5ad_file
       - data_product_metadata
-      - matrix_files
-      - features_files
-      - barcodes_files
     run: annotate-concatenate/concatenate.cwl
     label: "Concatenates h5ad data files in directory"
-  
-  - id: mtx-to-seurat
-    scatter: [matrix_files, features_files, barcodes_files]
-    scatterMethod: dotproduct
-    in:
-      - id: matrix_files
-        source: concatenate/matrix_files
-      - id: features_files
-        source: concatenate/features_files
-      - id: barcodes_files
-        source: concatenate/barcodes_files
-    
-    out:
-      [seurat_rds]
-    run: annotate-concatenate/mtx-to-seurat.cwl
 
   - id: azimuth-annotate
-    scatter: [seurat_rds]
-    scatterMethod: dotproduct
     in: 
-      - id: seurat_rds
-        source: mtx-to-seurat/seurat_rds
-      - id: tissue
-        source: tissue
-    
-    out:
-      - annotations_csv
-      - metadata_json
-    run: annotate-concatenate/azimuth-annotate.cwl
-    label: "Runs azimuth on the file created in the previous step"
-    
-  - id: add-azimuth-annotations
-    in:
       - id: raw_h5ad_file
         source: concatenate/raw_h5ad_file
       - id: tissue
-        source: tissue            
-      - id: metadata_json
-        source: azimuth-annotate/metadata_json
-      - id: annotations_csv
-        source: azimuth-annotate/annotations_csv
-      - id: data_product_metadata
-        source: concatenate/data_product_metadata
-
+        source: tissue
+      - id: organism
+        source: organism
+    
     out:
       - annotated_raw_h5ad_file
-      - updated_data_product_metadata
-    run: annotate-concatenate/add-azimuth-annotations.cwl
+    run: annotate-concatenate/azimuth-annotate.cwl
+    label: "Runs azimuth on the file created in the previous step"
+    

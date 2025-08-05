@@ -1,32 +1,30 @@
 cwlVersion: v1.0
 class: CommandLineTool
-label: Generates azimuth annotations
+label: Uses new pan organ Azimuth tool to annotate cell types for any organ
 
-requirements:
+hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-azimuth
+baseCommand: /opt/pan_organ_azimuth.py
+
 
 inputs:
-    seurat_rds:
-        type: File
-        doc: Seurat version of the raw h5ad files
-        inputBinding:
-            position: 0
+  raw_h5ad_file:
+    type: File
+    inputBinding:
+      position: 0
+  organism:
+    type: string?
+    inputBinding:
+      position: 1
+  tissue:
+    type: string?
+    inputbinding:
+      position: 2
 
-    tissue:
-        type: string?
-        doc: tissue type
-        inputBinding:
-            position: 1
 
-outputs: 
-    annotations_csv:
-        type: File
-        outputBinding:
-            glob: "*.csv"
-    metadata_json:
-        type: File
-        outputBinding:
-            glob: "*.json"
-
-baseCommand: [Rscript, /opt/azimuth.R]
+outputs:
+  annotated_raw_h5ad_file:
+    type: File
+    outputBinding:
+      glob: '*_raw.*'

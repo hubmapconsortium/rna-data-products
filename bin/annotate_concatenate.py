@@ -83,6 +83,7 @@ def annotate_file(
     unfiltered_copy = unfiltered_adata.copy()
     unfiltered_copy.obs["original_obs_id"] = unfiltered_adata.obs.index
     unfiltered_copy.obs["dataset"] = data_set_dir
+    unfiltered_copy.obs["tissue"] = tissue_type
 
     cell_ids_list = [
         "-".join([data_set_dir, barcode]) for barcode in unfiltered_copy.obs["barcode"]
@@ -134,36 +135,6 @@ def map_gene_ids(adata):
     return adata
 
 
-def split_and_save(adata, base_file_name, max_cells: int = 30000):
-    num_cells = adata.n_obs
-    num_splits = (num_cells // max_cells) + 1
-    for i in range(num_splits):
-        start_idx = i * max_cells
-        end_idx = min((i + 1) * max_cells, num_cells)
-        adata_sub = adata[start_idx:end_idx].copy()
-        part_file_name = f"{base_file_name}_part_{i+1}.h5ad"
-        matrix = adata_sub.X
-        features = pd.Series(adata_sub.var.index)
-        barcodes = pd.Series(adata_sub.obs.index)
-        write_mtx(matrix, part_file_name)
-        write_features(features, part_file_name)
-        write_barcodes(barcodes, part_file_name)
-        adata_sub.write(part_file_name)
-
-
-def write_mtx(matrix, part_file_name):
-    with gzip.open(f"{part_file_name}_counts_matrix.mtx.gz", "wb") as f:
-        scipy.io.mmwrite(f, matrix)
-
-
-def write_features(features, part_file_name):
-    features.to_csv(f"{part_file_name}_features.tsv.gz", index=False)
-
-
-def write_barcodes(barcodes, part_file_name):
-    barcodes.to_csv(f"{part_file_name}_barcodes.tsv.gz", index=False)
-
-
 def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tissue = None):
     bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
     metadata = {
@@ -207,8 +178,6 @@ def main(data_directory: Path, uuids_file: Path, tissue: str = None):
     adata.var = saved_var
     print(f"Writing {raw_output_file_name}")
     adata.write(f"{raw_output_file_name}.h5ad")
-    print(f"Splitting and writing {raw_output_file_name} into multiple files")
-    split_and_save(adata, raw_output_file_name)
     total_cell_count = adata.obs.shape[0]
     create_json(
         data_product_uuid,
