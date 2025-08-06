@@ -19,7 +19,7 @@ inputs:
       position: 1
   tissue:
     type: string?
-    inputbinding:
+    inputBinding:
       position: 2
 
 
