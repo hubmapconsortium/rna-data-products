@@ -24,6 +24,7 @@ def map_to_clid(adata_obs: pd.DataFrame):
     obs_w_clid = obs_w_clid.drop('Annotation_Label', axis='columns')
     print(obs_w_clid)
     print(obs_w_clid.index.value_counts())
+    print(obs_w_clid['barcode'].value_counts())
     return obs_w_clid
 
 
