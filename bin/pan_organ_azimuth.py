@@ -16,16 +16,15 @@ CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
 
 
 def map_to_clid(adata_obs: pd.DataFrame):
+    
     reference = pd.read_csv(CLID_MAPPING, header=10)
-    obs_w_clid = adata_obs.merge(reference[['Annotation_Label', 'CL_Label', 'CL_ID']],
-                                 how='left',
-                                 left_on='final_level_labels',
-                                 right_on='Annotation_Label')
-    obs_w_clid = obs_w_clid.drop('Annotation_Label', axis='columns')
-    print(obs_w_clid)
-    print(obs_w_clid.index.value_counts())
-    print(obs_w_clid['barcode'].value_counts())
-    return obs_w_clid
+    label_to_cl_label = dict(zip(reference['Annotation_Label'], reference['CL_Label']))
+    label_to_cl_id = dict(zip(reference['Annotation_Label'], reference['CL_ID']))
+
+    adata_obs['CL_Label'] = adata_obs['final_level_labels'].map(label_to_cl_label)
+    adata_obs['CL_ID'] = adata_obs['final_level_labels'].map(label_to_cl_id)
+
+    return adata_obs
 
 
 def main(
