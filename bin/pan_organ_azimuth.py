@@ -86,43 +86,6 @@ def main(
         for key in adata.layers:
             annotated_adata.layers[key] = adata.layers[key]
 
-        if 'X_umap' in annotated_adata.obsm:
-            with new_plot():
-                sc.pl.umap(annotated_adata, color="final_level_labels", show=False)
-                plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
-
-        if "X_spatial" in adata.obsm:
-            if "spatial" not in adata.obsm:
-                annotated_adata.obsm["spatial"] = annotated_adata.obsm["X_spatial"]
-
-            with new_plot():
-                sc.pl.scatter(annotated_adata, color="final_level_labels", basis="spatial", show=False)
-                plt.savefig("spatial_pos_by_cell_type.pdf", bbox_inches="tight")
-
-            sq.gr.spatial_neighbors(annotated_adata)
-            annotated_adata_subset = annotated_adata[~annotated_adata.obs.final_level_labels.isna()]
-
-            sq.gr.nhood_enrichment(annotated_adata_subset, cluster_key="final_level_labels")
-
-            with new_plot():
-                sq.pl.nhood_enrichment(annotated_adata_subset, cluster_key="final_level_labels")
-                plt.savefig("neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight")
-
-    #    single_sample_cells = [c for c in annotated_adata.obs.azimuth_fine.unique() if
-    #                           len(annotated_adata[annotated_adata.obs.azimuth_fine == c].obs.index) == 1]
-    #    annotated_adata_subset = annotated_adata[~annotated_adata.obs.azimuth_fine.isin(single_sample_cells)]
-
-    #    sc.tl.rank_genes_groups(annotated_adata_subset, "azimuth_fine", method="t-test",
-    #                            key_added="rank_genes_groups_cell_type")
-
-    #    with new_plot():
-    #        sc.pl.rank_genes_groups(annotated_adata_subset, key="rank_genes_groups_cell_type",
-    ##                                n_genes=25, sharey=False)
-     #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
-
-    #    annotated_adata.uns = annotated_adata_subset.uns
-
-
         if raw_h5ad_file.suffix == ".h5mu":
             mudata.mod["rna"] = annotated_adata
             mudata.write_h5mu(f"{tissue}_raw.h5mu" if tissue else "RNA_raw.h5mu")
