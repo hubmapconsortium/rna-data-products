@@ -6,7 +6,6 @@ hints:
   DockerRequirement:
     dockerPull: hubmap/rna-data-products-python
 baseCommand: /opt/secondary_analysis_pt2.py
-baseCommand: /opt/secondary_analysis_pt2.py
 
 inputs: 
     sketched_h5ad_file:
@@ -27,10 +26,8 @@ inputs:
         doc: data product metadata
         inputBinding: 
             position: 2
-            position: 2
 
 outputs:
-    processed_h5ad_file:
     processed_h5ad_file:
         type: File
         outputBinding:

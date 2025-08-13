@@ -13,7 +13,6 @@ inputs:
         doc: The raw h5ad file
         inputBinding:
             position: 0
-
     tissue:
         type: string?
         doc: optional tissue type
