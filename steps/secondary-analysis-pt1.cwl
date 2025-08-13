@@ -19,6 +19,10 @@ inputs:
         doc: optional tissue type
         inputBinding:
             position: 1
+    metadata:
+        type: File
+        inputBinding:
+            position: 2
 
 
 outputs:
@@ -27,4 +31,9 @@ outputs:
         outputBinding:
             glob: "*_processed.h5ad"
         doc: h5ad file with secondary analysis processing
+    
+    metadata:
+        type: File
+        outputBinding: 
+            glob: "*.json"
     
