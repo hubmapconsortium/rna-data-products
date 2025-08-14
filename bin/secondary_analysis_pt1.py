@@ -50,7 +50,9 @@ def main(
     # annotated_obs = add_patient_metadata(adata.obs, dataset_info)
     total_cell_count = adata.obs.shape[0]
     cell_type_counts = adata.obs["final_level_labels"].value_counts().to_dict()
+    print(cell_type_counts)
     adata.uns["cell_type_counts"] = cell_type_counts
+    print(adata.uns['cell_type_counts'])
     metadata = add_cell_counts(
         data_product_metadata, cell_type_counts, total_cell_count
     )
