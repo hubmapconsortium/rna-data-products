@@ -74,7 +74,7 @@ def main(
             'protocol': "10.1016/j.cell.2021.04.048",
         }
     mdata = mu.MuData({f"{uuid}_raw": adata})
-    mdata.uns['epic_type '] = {'analyses', 'annotations'}
+    mdata.uns['epic_type '] = ['analyses', 'annotations']
     mdata.write(raw_output_file_name)
 
     raw_file_size = os.path.getsize(raw_output_file_name)
