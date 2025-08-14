@@ -6,7 +6,7 @@ from pathlib import Path
 
 import anndata
 import json
-import muon as mu
+import mudata as md
 import numpy as np
 import os
 import pandas as pd
@@ -73,9 +73,9 @@ def main(
             'mechanism': 'machine',
             'protocol': "10.1016/j.cell.2021.04.048",
         }
-    mdata = mu.MuData({f"{uuid}_raw": adata})
+    mdata =md.MuData({f"{uuid}_raw": adata})
     mdata.uns['epic_type '] = ['analyses', 'annotations']
-    mdata.write(raw_output_file_name)
+    md.write_h5mu(raw_output_file_name, mdata)
 
     raw_file_size = os.path.getsize(raw_output_file_name)
     add_file_sizes(metadata, raw_file_size)
