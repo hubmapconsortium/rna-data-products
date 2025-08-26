@@ -9,7 +9,6 @@ baseCommand: /opt/secondary_analysis_pt2.py
 
 inputs: 
     sketched_h5ad_file:
-    sketched_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:
