@@ -46,22 +46,22 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     sc.tl.leiden(adata)
     sc.tl.rank_genes_groups(adata, "leiden")
 
-    if "predicted_label" in adata.obs_keys():
+    if "final_level_labels" in adata.obs_keys():
 
-        non_na_values = adata.obs.predicted_label.dropna()
+        non_na_values = adata.obs.final_level_labels.dropna()
         counts_dict = non_na_values.value_counts().to_dict()
         keep_cell_types = [
             cell_type for cell_type in counts_dict if counts_dict[cell_type] > 1
         ]
-        adata_filter = adata[adata.obs.predicted_label.isin(keep_cell_types)]
+        adata_filter = adata[adata.obs.final_level_labels.isin(keep_cell_types)]
         sc.tl.rank_genes_groups(
-            adata_filter, "predicted_label", key_added="rank_genes_groups_cell_types"
+            adata_filter, "final_level_labels", key_added="rank_genes_groups_cell_types"
         )
         adata.uns = adata_filter.uns
 
-    if "predicted_label" in adata.obs_keys():
-        cell_type_counts = adata.obs["predicted_label"].value_counts().to_dict()
-        adata.uns["cell_type_counts"] = cell_type_counts
+    if "final_level_labels" in adata.obs_keys():
+        cell_type_counts = adata.obs["final_level_labels"].value_counts().to_dict()
+        adata.uns["cell_type_counts"] = json.dumps(cell_type_counts)
         metadata = add_cell_counts(
             data_product_metadata, cell_type_counts, total_cell_count
         )
@@ -73,7 +73,7 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
 
     with plt.rc_context():
         sc.pl.umap(adata, color="leiden", show=False)
-        plt.savefig(f"{uuid}.png" if tissue else "rna.png")
+        plt.savefig(f"{uuid}.png")
 
     # Convert to MuData and add Obj x Analyte requirements
     if 'annotation' in adata.obsm_keys():
