@@ -136,13 +136,13 @@ def map_gene_ids(adata):
 
 
 def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tissue = None):
-    bucket_url = f"https://hubmap-data-products.s3.amazonaws.com/{data_product_uuid}/"
+    bucket_url = f"https://g-24f5cc.09193a.5898.dn.glob.us/public/hubmap-data-products/{data_product_uuid}"
     metadata = {
         "Data Product UUID": data_product_uuid,
         "Tissue": convert_tissue_code(tissue) if tissue else None,
         "Assay": "rna",
-        "Raw URL": bucket_url + f"{tissue}_raw.h5ad" if tissue else bucket_url + "rna_raw.h5mu",
-        "Processed URL": bucket_url + f"{tissue}_processed.h5ad" if tissue else bucket_url + "rna_processed.h5mu",
+        "Raw URL": bucket_url + f"{tissue}_raw.h5mu" if tissue else bucket_url + "rna_raw.h5mu",
+        "Processed URL": bucket_url + f"{tissue}_processed.h5mu" if tissue else bucket_url + "rna_processed.h5mu",
         "Creation Time": creation_time,
         "Dataset UUIDs": uuids,
         "Dataset HBMIDs": hbmids,
