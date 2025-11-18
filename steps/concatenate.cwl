@@ -33,12 +33,6 @@ inputs:
       position: 4
 
 outputs:
-  raw_h5ad_files:
-    type: File[]
-    outputBinding:
-      glob: "*_raw_*.h5ad"
-    doc: h5ad files containing raw expression data
-
   raw_h5ad_file:
     type: File
     outputBinding:
@@ -50,21 +44,3 @@ outputs:
     outputBinding: 
       glob: "*.json"
     doc: metadata for web app
-
-  matrix_files:
-    type: File[]
-    outputBinding:
-      glob: "*_counts_matrix.mtx.gz"
-    doc: binary counts matrix
-
-  features_files:
-    type: File[]
-    outputBinding:
-      glob: "*_features.tsv.gz"
-    doc: plain text features
-  
-  barcodes_files: 
-    type: File[]
-    outputBinding:
-      glob: "*_barcodes.tsv.gz"
-    doc: plain text barcodes

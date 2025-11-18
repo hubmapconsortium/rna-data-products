@@ -33,6 +33,12 @@ outputs:
             glob: "*_processed.h5ad"
         doc: h5ad file with secondary analysis processing
     
+    processed_h5mu_file:
+        type: File
+        outputBinding:
+            glob: "*_processed.h5mu"
+        doc: mudata object for EPIC registration
+
     umap_png:
         type: File
         outputBinding:

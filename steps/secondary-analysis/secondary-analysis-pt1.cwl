@@ -8,7 +8,7 @@ hints:
 baseCommand: /opt/secondary_analysis_pt1.py
 
 inputs: 
-    annotated_raw_h5ad_file:
+    raw_h5ad_file:
         type: File
         doc: The raw h5ad file
         inputBinding:
@@ -26,18 +26,18 @@ inputs:
         inputBinding:
             position: 2
     
-    updated_data_product_metadata:
+    data_product_metadata:
         type: File
         doc: data product metadata
         inputBinding: 
             position: 3
 
 outputs:
-    final_raw_h5ad_file:
+    final_raw_h5mu_file:
         type: File
         outputBinding:
-            glob: "*_raw.h5ad"
-        doc: annotated h5ad file with additional obs columns
+            glob: "*_raw.h5mu"
+        doc: annotated h5mu file with additional obs columns
 
     partially_processed_h5ad_file:
         type: File
