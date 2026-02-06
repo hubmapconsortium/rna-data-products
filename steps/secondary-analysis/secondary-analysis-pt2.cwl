@@ -50,3 +50,15 @@ outputs:
         outputBinding:
             glob: "*.json"
         doc: final data product metadata with all cell type counts
+
+    deepscence_continuous_plot:
+        type: File
+        outputBinding:
+            glob: "umap_by_deepscence_continuous.pdf"
+        doc: umap of deepscence scores
+
+    deepscence_binary_plot:
+        type: File
+        outputBinding:
+            glob: "umap_by_deepscence_binary.pdf"
+        doc: umap of deepscence binary results
