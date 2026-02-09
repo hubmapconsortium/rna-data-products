@@ -110,7 +110,7 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     adata.obs["DeepScence_score"] = adata.obsm["DeepScence"]["ds"]
     max_score = adata.obs["DeepScence_score"].max()
     min_score = adata.obs["DeepScence_score"].min()
-    offset = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
+    offset = mcolors.TwoSlopeNorm(vcenter=0, vmin=min_score, vmax=max_score)
     cmap = cm.coolwarm
     adata.obs["DeepScence_binary"] = adata.obsm["DeepScence"]["binary"]
     with plt.rc_context():
