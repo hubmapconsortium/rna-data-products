@@ -47,7 +47,7 @@ outputs:
     type: File
     label: "Umap with coloring by DeepScence scores"
   deepscence_binary_plot:
-    outputSource: secondary-analysis-pt-2/deepscence_binary_plot
+    outputSource: secondary-analysis-pt2/deepscence_binary_plot
     type: File
     label: "Umap with coloring by DeepScence binary results"
     
@@ -56,7 +56,7 @@ steps:
   - id: secondary-analysis-pt1
     in:
       - id: raw_h5ad_with_ds
-        source: raw_h5ad_file
+        source: raw_h5ad_with_ds
       - id: tissue
         source: tissue
       - id: uuids_file
