@@ -113,7 +113,7 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     print("min score: ", min_score)
     print("max score: ",max_score)
     mean_score = adata.obs["DeepScence_score"].mean()
-    if min_score > mean_score:
+    if min_score > 0:
         offset = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=mean_score, vmax=max_score)
     else:
         offset = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
