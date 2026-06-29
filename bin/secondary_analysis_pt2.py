@@ -107,24 +107,29 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     add_file_sizes(metadata, processed_file_size)
 
     # Plot DeepScence results
+    cmap = cm.coolwarm
     adata.obs["DeepScence_score"] = adata.obsm["DeepScence"]["ds"]
     max_score = adata.obs["DeepScence_score"].max()
     min_score = adata.obs["DeepScence_score"].min()
     print("min score: ", min_score)
     print("max score: ",max_score)
-    mean_score = adata.obs["DeepScence_score"].mean()
     if min_score > 0:
-        offset = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=mean_score, vmax=max_score)
+        with plt.rc_context():
+            sc.pl.umap(adata, color="DeepScence_score", cmap=cmap)
+            plt.savefig("umap_by_deepscence_continuous.pdf", bbox_inches="tight")
     else:
         offset = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
-    cmap = cm.coolwarm
+        with plt.rc_context():
+            sc.pl.umap(adata, color="DeepScence_score", cmap=cmap, norm=offset)
+            plt.savefig("umap_by_deepscence_continuous.pdf", bbox_inches="tight")
     adata.obs["DeepScence_binary"] = adata.obsm["DeepScence"]["binary"]
-    with plt.rc_context():
-        sc.pl.umap(adata, color="DeepScence_score", cmap=cmap, norm=offset)
-        plt.savefig("umap_by_deepscence_continuous.pdf", bbox_inches="tight")
     with plt.rc_context():
         sc.pl.umap(adata, color="DeepScence_binary")
         plt.savefig("umap_by_deepscence_binary.pdf", bbox_inches="tight")
+    # Put HUGO symbols as var_names for shinycell purposes
+    adata.var['ensembl_ids'] = adata.var_names
+    adata.var_names = adata.var['hugo_symbol']
+    adata.write(f"{processed_output_file_name}.h5ad")
 
 if __name__ == "__main__":
     p = ArgumentParser()

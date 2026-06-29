@@ -55,7 +55,7 @@ def main(
 
     with open(data_product_metadata, "r") as infile:
         metadata = json.load(infile)
-    uuid = metadata["Data Product UUID"]
+    uuid = metadata["Integrated Map UUID"]
     # Convert to MuData and add Obj x Analyte requirements
     adata.obs['object_type'] = 'cell'
     adata.uns['analyte_class'] = 'RNA'

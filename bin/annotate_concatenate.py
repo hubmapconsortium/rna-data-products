@@ -120,7 +120,7 @@ def map_gene_ids(var):
 def create_json(data_product_uuid, creation_time, uuids, hbmids, cell_count, tissue = None):
     bucket_url = f"https://g-24f5cc.09193a.5898.dn.glob.us/public/hubmap-data-products/{data_product_uuid}"
     metadata = {
-        "Data Product UUID": data_product_uuid,
+        "Integrated Map UUID": data_product_uuid,
         "Tissue": convert_tissue_code(tissue) if tissue else None,
         "Assay": "rna",
         "Raw URL": bucket_url + f"{tissue}_raw.h5mu" if tissue else bucket_url + "rna_raw.h5mu",
