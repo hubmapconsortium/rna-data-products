@@ -101,7 +101,6 @@ def main(h5ad_file: Path, data_product_metadata: Path, tissue: str=None):
     mdata.uns["epic_type "] = ['analyses', 'annotations']
 
     print(f"Writing {processed_output_file_name}")
-    adata.write(f"{processed_output_file_name}.h5ad")
     mdata.write(f"{processed_output_file_name}.h5mu")
     processed_file_size = os.path.getsize(f"{processed_output_file_name}.h5mu")
     add_file_sizes(metadata, processed_file_size)
