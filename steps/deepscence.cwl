@@ -3,7 +3,7 @@ class: CommandLineTool
 label: Identify and score scenescent cells
 requirements:
   DockerRequirement:
-    dockerPull: sennet/rna-data-products-python:latest
+    dockerPull: hubmap/rna-data-products-python:latest
 baseCommand: /opt/deepscence.py
 
 inputs:
