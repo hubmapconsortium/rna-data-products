@@ -17,7 +17,7 @@ def main(h5ad_file):
     adata.var.index = adata.var["new_index"]
 
     # Run DeepScence
-    adata = DeepScence(adata, binarize=True)
+    adata = DeepScence(adata, binarize=True, species="human")
 
     # Rename and reorganize new columns
     df = pd.DataFrame()
